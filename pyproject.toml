@@ -1,0 +1,43 @@
+[project]
+name = "docker-logger"
+dynamic = ["version", "dependencies"]
+description = 'Education Warehouse tool voor docker-logger.'
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE.txt" } # Copyright (c) 2024 Education Warehouse
+keywords = ['edwh']
+authors = [
+    { name = "Romy Scholler", email = "romy.s@educationwarehouse.nl" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[project.optional-dependencies]
+dev = [
+    "hatch",
+    "python-semantic-release<8",
+    "black",
+    "web2py-gluon",
+    'edwh[omgeving,plugins]'
+]
+
+[tool.hatch.version]
+path = "app/__init__.py"
+
+[tool.setuptools]
+packages = []
+
+[tool.semantic_release]
+branch = "studiovo/staging"
+version_variable = "app/__init__.py:__version__"
+change_log = "CHANGELOG.md"
+upload_to_repository = false
+upload_to_release = false
+build_command = "hatch build"

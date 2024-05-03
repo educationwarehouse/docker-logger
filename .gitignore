@@ -1,0 +1,16 @@
+*.pyc
+*.bak
+app/sessions/
+app/cache/
+app/errors/
+
+.idea/
+venv/*
+.env
+config.toml
+/web2py/app/databases
+/app/image_cache/
+*.egg-info
+.toml
+logs
+

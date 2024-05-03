@@ -1,0 +1,70 @@
+# based on https://code.dutveul.nl/EducationWarehouse/Docker/straat/files/tip/docker-compose.yml?at=tip
+version: "3.5"
+networks:
+  broker:
+    # bedoeld om contact tussen front en backend netwerken te faciliteren met als raakvlak alleen graphql
+    name: broker
+
+services:
+  web2py:
+    restart: unless-stopped
+    stop_grace_period: 2s
+    build:
+      context: web2py
+      dockerfile: Dockerfile
+    expose:
+      - 8000
+    env_file:
+      - .env
+    environment:
+      ENABLE_ICECREAM: 1
+    volumes:
+      - ./logs:/srv/logs
+      - type: bind
+        source: ./web2py/app
+        target: /src/web2py/applications/init
+    networks:
+      - broker # om beschikbaar te zijn voor traefik
+    extra_hosts:
+      host.docker.internal: host-gateway
+    labels:
+      - "traefik.http.routers.web2py-${APPLICATION_NAME}-secure.rule=Host(`${APPLICATION_NAME}.${HOSTINGDOMAIN}`)"
+      - "traefik.http.routers.web2py-${APPLICATION_NAME}-secure.tls=true"
+      - "traefik.http.routers.web2py-${APPLICATION_NAME}-secure.tls.certresolver=${CERTRESOLVER}"
+      - "traefik.docker.network=broker" # https://doc.traefik.io/traefik/providers/docker/#network
+      - "traefik.enable=true"
+    # -K init -X
+    command: python3 web2py.py -a ${WEB2PY_PASSWORD} -i "0.0.0.0" -p 8000  --min_threads 15 --max_threads=50
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "25m"
+        max-file: "2"
+
+  logger:
+#    build hoeft niet, omdat de image al op dockerhub staat (docker compose pull)
+#      build: docker-logger
+      image: umputun/docker-logger
+      container_name: "logger"
+      hostname: "logger"
+      restart: always
+
+      logging:
+        driver: json-file
+        options:
+          max-size: "10m"
+          max-file: "5"
+
+      environment:
+        - LOG_FILES=true
+        - LOG_SYSLOG=false
+        - EXCLUDE=docker-logger
+        - MAX_FILES=10
+        - MAX_SIZE=50
+        - MAX_AGE=20
+        - DEBUG=false
+      #            - TIME_ZONE=America/Chicago
+
+      volumes:
+        - ./logs:/srv/logs
+        - /var/run/docker.sock:/var/run/docker.sock
