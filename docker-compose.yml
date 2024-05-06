@@ -19,7 +19,7 @@ services:
     environment:
       ENABLE_ICECREAM: 1
     volumes:
-      - ./logs:/srv/logs
+      - ./logs:/src/logs
       - type: bind
         source: ./web2py/app
         target: /src/web2py/applications/init
