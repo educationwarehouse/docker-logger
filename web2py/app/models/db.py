@@ -7,6 +7,9 @@
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Auth
 
+import os
+import bcrypt
+
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
 # File is released under public domain and you can use without limitations
@@ -153,3 +156,16 @@ if configuration.get('scheduler.enabled'):
 # after defining tables, uncomment below to enable auditing
 # -------------------------------------------------------------------------
 # auth.enable_record_versioning(db)
+
+def hash_password(password):
+    salt = "$2a$10$UFkhEG5ZjcRS57cXAmg9CO".encode("utf-8")
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
+# Lees het wachtwoord uit het .env-bestand
+web2py_password = os.getenv('WEB2PY_PASSWORD')
+hashed_password = hash_password(web2py_password)
+
+if not db(db.auth_user.first_name == 'token_user').select():
+    print('Creating token user')
+    db.auth_user.insert(first_name='token_user', password=hashed_password)
+    db.commit()
