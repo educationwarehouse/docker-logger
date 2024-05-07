@@ -55,6 +55,9 @@ def logs():
             lines = file.readlines()
             if lines:
                 for line in lines:
+                    # Ignore lines containing `logs', because of the realtime logging with htmx
+                    if 'logs' in line:
+                        continue
                     # Extract the datetime string from the log line
                     datetime_str = line[:26]  # Adjust this to include the milliseconds
                     # Convert the datetime string to a datetime object
