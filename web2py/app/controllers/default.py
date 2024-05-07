@@ -5,6 +5,8 @@ if False:
 
 import bcrypt
 import glob
+import os
+from datetime import datetime
 
 
 
@@ -40,35 +42,29 @@ def index():
     return dict(form=form)
 
 
-from pathlib import Path
-
 def logs():
     """
     De logs pagina van de webapplicatie, hier kunnen we de logs van de Docker container laten zien.
     """
-    # Vind alle .log bestanden in de parent directory van de huidige map en alle submappen
     log_files = glob.glob('../logs/*.log', recursive=True)
     logs = []
     for log_file in log_files:
+        # Extract the Docker name from the log file name
+        docker_name = os.path.basename(log_file).split('.')[0]
         with open(log_file, 'r') as file:
             lines = file.readlines()
-            for line in lines:
-                print(line)
-                logs.append(line)
+            if lines:
+                for line in lines:
+                    # Extract the datetime string from the log line
+                    datetime_str = line[:26]  # Adjust this to include the milliseconds
+                    # Convert the datetime string to a datetime object
+                    dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
+                    logs.append((dt, docker_name, line))
+
+    # Sort the logs by datetime
+    logs = sorted(logs, key=lambda log: log[0])
 
     return dict(logs=logs)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
