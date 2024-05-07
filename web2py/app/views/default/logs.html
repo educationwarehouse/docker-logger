@@ -1,17 +1,23 @@
+<script src="https://unpkg.com/htmx.org"></script>
+
 <style>
     tr:nth-child(even) {background-color: #f2f2f2;}
 </style>
 
-<table>
-    <tr>
-        <th>Docker container</th>
-        <th>Logregel</th>
-    </tr>
-    {{for log in logs:}}
-    <tr>
-        <td>{{=log[0]}}</td>
-        <td>{{=log[1]}}</td>
-        <td>{{=log[2]}}</td>
-    </tr>
-    {{pass}}
-</table>
+<div id="logs" hx-get="/init/default/logs" hx-trigger="load" hx-poll="1s">
+<div>
+    <table>
+        <tr>
+            <th>Docker container</th>
+            <th>Datum</th>
+            <th>Logregel</th>
+        </tr>
+        {{for log in logs:}}
+        <tr>
+            <td>{{=log[0]}}</td>
+            <td>{{=log[1]}}</td>
+            <td>{{=log[2]}}</td>
+        </tr>
+        {{pass}}
+    </table>
+</div>
