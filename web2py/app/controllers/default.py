@@ -58,14 +58,12 @@ def logs():
                     # Extract the datetime string from the log line
                     datetime_str = line[:26]  # Adjust this to include the milliseconds
                     # Convert the datetime string to a datetime object
-                    dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
-                    logs.append((dt, docker_name, line))
+                    timestamp = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
+                    logs.append((docker_name, timestamp, line))
 
     # Sort the logs by datetime
-    logs = sorted(logs, key=lambda log: log[0])
+    logs = sorted(logs, key=lambda log: log[1])
 
     return dict(logs=logs)
-
-
 
 
