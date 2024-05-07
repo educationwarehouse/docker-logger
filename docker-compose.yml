@@ -44,7 +44,7 @@ services:
   logger:
 #    build hoeft niet, omdat de image al op dockerhub staat (docker compose pull)
 #      build: docker-logger
-      image: umputun/docker-logger
+      image: educationwarehouse/docker-logger-timestamped
       container_name: "logger"
       hostname: "logger"
       restart: always
@@ -63,7 +63,6 @@ services:
         - MAX_SIZE=50
         - MAX_AGE=20
         - DEBUG=false
-      #            - TIME_ZONE=America/Chicago
 
       volumes:
         - ./logs:/srv/logs
