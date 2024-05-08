@@ -7,7 +7,7 @@ import bcrypt
 import glob
 import os
 from datetime import datetime
-
+from urllib.parse import urlparse, parse_qs
 
 
 def verify_password(password, hashed_password):
@@ -43,9 +43,19 @@ def index():
 
 
 def logs():
+    # Fetch log filters from the database
+    log_filters = db(db.log_filter).select()
+
+    return dict(log_filters=log_filters)
+
+
+def realtime_logs():
     """
     De logs pagina van de webapplicatie, hier kunnen we de logs van de Docker container laten zien.
     """
+    # Get the filters from the URL
+    url = urlparse(request.env.http_referer)
+    filters = parse_qs(url.query).get('filters', [''])[0].split(',')
     log_files = glob.glob('../logs/*.log', recursive=True)
     logs = []
     for log_file in log_files:
@@ -55,14 +65,13 @@ def logs():
             lines = file.readlines()
             if lines:
                 for line in lines:
-                    # Ignore lines containing `logs', because of the realtime logging with htmx
-                    if 'logs' in line:
-                        continue
-                    # Extract the datetime string from the log line
-                    datetime_str = line[:26]  # Adjust this to include the milliseconds
-                    # Convert the datetime string to a datetime object
-                    timestamp = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
-                    logs.append((docker_name, timestamp, line))
+                    # Only include the log if it matches one of the filters
+                    if not filters or any(filter in line for filter in filters):
+                        # Extract the datetime string from the log line
+                        datetime_str = line[:26] # Adjust this to include the milliseconds
+                        # Convert the datetime string to a datetime object
+                        timestamp = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
+                        logs.append((docker_name, timestamp, line))
 
     # Sort the logs by datetime
     logs = sorted(logs, key=lambda log: log[1])
