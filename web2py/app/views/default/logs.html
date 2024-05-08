@@ -1,36 +1,112 @@
 <script src="https://unpkg.com/htmx.org"></script>
 
 <script>
-function updateFilters(checkbox) {
-    // Get all checked checkboxes
-    var checkedBoxes = document.querySelectorAll('#' +
-        'filter-bar input[type=checkbox]:checked');
+    window.onload = function (){
+        search_input = document.getElementById('search-input');
+        search_input.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addSearches();
+            }
+        });
+    }
 
-    // Construct a string of their values separated by commas
-    var filters = Array.from(checkedBoxes).map(c => c.value).join(',');
 
-    // Get the base URL from the data-base-url attribute
-    var baseUrl = document.getElementById('logs').dataset.baseUrl;
+    function filterBar(paramName, paramValue) {
+        // Get the current URL
+        var url = new URL(window.location.href);
 
-    // Update the hx-get and hx-poll attributes of the logs div
-    var logsDiv = document.getElementById('logs');
-    logsDiv.setAttribute('hx-get', baseUrl + (filters ? '?filters=' + filters : ''));
-    logsDiv.setAttribute('hx-poll', baseUrl + (filters ? '?filters=' + filters : ''));
+        // Create a URLSearchParams object
+        var params = new URLSearchParams(url.search);
 
-    // Update the current URL with the selected filters
-    var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (filters ? '?filters=' + filters : '');
-    window.history.pushState({path:newUrl},'',newUrl);
+        if (paramValue) {
+            // Set the parameter
+            params.set(paramName, paramValue);
+        } else {
+            // Remove the parameter
+            params.delete(paramName);
+        }
 
-    // Tell htmx to process the changes
-    htmx.process(logsDiv);
-}
+        // Update the URL's search parameters
+        url.search = params.toString();
+
+        // Decode the URL
+        var decodedUrl = decodeURIComponent(url.toString());
+
+        // Update the current URL without reloading the page
+        window.history.pushState({path:decodedUrl},'',decodedUrl);
+
+        // Get the base URL from the data-base-url attribute
+        var baseUrl = document.getElementById('logs').dataset.baseUrl;
+
+        // Update the hx-get and hx-poll attributes of the logs div
+        var logsDiv = document.getElementById('logs');
+        logsDiv.setAttribute('hx-get', baseUrl + (paramValue ? '?' + paramName + '=' + paramValue : ''));
+        logsDiv.setAttribute('hx-poll', baseUrl + (paramValue ? '?' + paramName + '=' + paramValue : ''));
+
+        // Tell htmx to process the changes
+        htmx.process(logsDiv);
+    }
+
+    function addFilters(checkbox) {
+        // Get all checked checkboxes
+        var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
+
+        // Construct a string of their values separated by commas
+        var filters = Array.from(checkedBoxes).map(c => c.value).join(',');
+
+        filterBar('filters', filters);
+    }
+
+    function addSearches() {
+        // Get the input from the search bar
+        var input = document.getElementById('search-input').value;
+
+        // Split the input string by spaces to get the search
+        var search = input.split(' ');
+
+        filterBar('search', search.join(','));
+    }
+
+    function clearUrl() {
+        // Clear the search bar
+        document.getElementById('search-input').value = '';
+
+
+        // Clear the checkboxes
+        var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
+        for (var i = 0; i < checkedBoxes.length; i++) {
+            checkedBoxes[i].checked = false;
+        }
+
+        // Get the base URL from the data-base-url attribute
+        var baseUrl = document.getElementById('logs').dataset.baseUrl;
+
+        // Update the hx-get and hx-poll attributes of the logs div
+        var logsDiv = document.getElementById('logs');
+        logsDiv.setAttribute('hx-get', baseUrl);
+        logsDiv.setAttribute('hx-poll', baseUrl);
+
+        // Update the current URL without the search parameter
+        var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({path:newUrl},'',newUrl);
+
+        // Tell htmx to process the changes
+        htmx.process(logsDiv);
+    }
 </script>
 
 <div id="filter-bar">
     {{for log_filter in log_filters:}}
-    <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="updateFilters(this)">
+    <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="addFilters(this)">
     <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
     {{pass}}
+</div>
+
+<div id="search-bar">
+    <input type="text" id="search-input" placeholder="Enter comma separated values">
+    <button onclick="addSearches()">Search</button>
+    <button onclick="clearUrl()">Clear URL</button>
 </div>
 
 <div id="logs" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs"></div>
