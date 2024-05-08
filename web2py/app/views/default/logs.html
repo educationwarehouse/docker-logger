@@ -1,22 +1,36 @@
 <script src="https://unpkg.com/htmx.org"></script>
 
-<style>
-    tr:nth-child(even) {background-color: #f2f2f2;}
-</style>
+<script>
+function updateFilters(checkbox) {
+    // Get all checked checkboxes
+    var checkedBoxes = document.querySelectorAll('#' +
+        'filter-bar input[type=checkbox]:checked');
 
-<div id="logs" hx-get="/init/default/logs" hx-trigger="load" hx-poll="1s">
-    <table>
-        <tr>
-            <th>Docker container</th>
-            <th>Datum</th>
-            <th>Logregel</th>
-        </tr>
-        {{for log in logs:}}
-        <tr>
-            <td>{{=log[0]}}</td>
-            <td>{{=log[1]}}</td>
-            <td>{{=log[2]}}</td>
-        </tr>
-        {{pass}}
-    </table>
+    // Construct a string of their values separated by commas
+    var filters = Array.from(checkedBoxes).map(c => c.value).join(',');
+
+    // Get the base URL from the data-base-url attribute
+    var baseUrl = document.getElementById('logs').dataset.baseUrl;
+
+    // Update the hx-get and hx-poll attributes of the logs div
+    var logsDiv = document.getElementById('logs');
+    logsDiv.setAttribute('hx-get', baseUrl + (filters ? '?filters=' + filters : ''));
+    logsDiv.setAttribute('hx-poll', baseUrl + (filters ? '?filters=' + filters : ''));
+
+    // Update the current URL with the selected filters
+    var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (filters ? '?filters=' + filters : '');
+    window.history.pushState({path:newUrl},'',newUrl);
+
+    // Tell htmx to process the changes
+    htmx.process(logsDiv);
+}
+</script>
+
+<div id="filter-bar">
+    {{for log_filter in log_filters:}}
+    <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="updateFilters(this)">
+    <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
+    {{pass}}
 </div>
+
+<div id="logs" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs"></div>
