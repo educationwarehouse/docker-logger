@@ -56,6 +56,7 @@ def realtime_logs():
     # Get the filters from the URL
     url = urlparse(request.env.http_referer)
     filters = parse_qs(url.query).get('filters', [''])[0].split(',')
+    search_terms = parse_qs(url.query).get('search', [''])[0].split(',')
     log_files = glob.glob('../logs/*.log', recursive=True)
     logs = []
     for log_file in log_files:
@@ -65,8 +66,11 @@ def realtime_logs():
             lines = file.readlines()
             if lines:
                 for line in lines:
-                    # Only include the log if it matches one of the filters
-                    if not filters or any(filter in line for filter in filters):
+                    # Ignore lines containing `logs', because of the realtime logging with htmx
+                    if 'logs' in line and 'debug' in line:
+                        continue
+                    # Only include the log if it matches one of the filters or search terms
+                    if (not filters or any(filter in line for filter in filters)) and (not search_terms or any(search_term in line for search_term in search_terms)):
                         # Extract the datetime string from the log line
                         datetime_str = line[:26] # Adjust this to include the milliseconds
                         # Convert the datetime string to a datetime object
@@ -75,7 +79,7 @@ def realtime_logs():
 
     # Sort the logs by datetime
     logs = sorted(logs, key=lambda log: log[1])
-
+    logs = logs[-10:]
     return dict(logs=logs)
 
 
