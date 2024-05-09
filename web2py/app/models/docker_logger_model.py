@@ -1,8 +1,8 @@
-db.define_table("url_opslag",
+db.define_table("url_storage",
                 Field("url", "string")
                 )
-db.define_table("zoekterm",
-                Field("zoekterm", "string")
+db.define_table("search_term",
+                Field("term", "list:string")
                 )
 db.define_table("log_filter",
                 Field("log_filter", "string")
