@@ -9,6 +9,7 @@
                 addSearches();
             }
         });
+        fetchSearchTerms();
     }
 
 
@@ -94,6 +95,56 @@
         // Tell htmx to process the changes
         htmx.process(logsDiv);
     }
+
+    function openModal() {
+        document.getElementById('modal').style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = "none";
+    }
+
+    function submitSearchTerm() {
+        var term = document.getElementById('new-term').value;
+        var name = document.getElementById('name').value;
+        if (term) {
+            var params = new URLSearchParams();
+            params.append('term', term);
+            params.append('name', name);
+            window.location.href = '/init/default/add_search_term?' + params.toString();
+        }
+    }
+
+    function addToSearchBar(term) {
+        var searchInput = document.getElementById('search-input');
+        if (searchInput.value) {
+            searchInput.value += ',';
+        }
+        searchInput.value += term[0];
+    }
+
+
+    function fetchSearchTerms() {
+        fetch('/init/default/get_search_terms')
+            .then(response => response.json())
+            .then(search_terms => {
+                var searchTermsDiv = document.getElementById('search-terms');
+                searchTermsDiv.innerHTML = '';  // Clear the div
+                for (var i = 0; i < search_terms.length; i++) {
+                    var div = document.createElement('div');
+                    div.textContent = search_terms[i][1] || search_terms[i][0];
+                    div.className = 'search-term';
+                    div.onclick = createOnClickFunction(search_terms[i]);
+                    searchTermsDiv.appendChild(div);
+                }
+            });
+    }
+
+    function createOnClickFunction(term) {
+        return function() {
+            addToSearchBar(term);
+        };
+    }
 </script>
 
 <div id="filter-bar">
@@ -106,7 +157,29 @@
 <div id="search-bar">
     <input type="text" id="search-input" placeholder="Enter comma separated values">
     <button onclick="addSearches()">Search</button>
-    <button onclick="clearUrl()">Clear URL</button>
+    <button onclick="clearUrl()">Clear (URL)</button>
 </div>
+
+
+<div id="modal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
+        <h2>Add a new search term</h2>
+        <input type="text" id="new-term" placeholder="Enter new search term">
+        <br>
+        <input type="text" id="name" placeholder="Enter a name (default is search term)">
+        <button onclick="submitSearchTerm()">Submit</button>
+        <button onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<div id="search-terms-container">
+    <h2>Search Terms</h2>
+    <p>Tip: Click on a search term to get it in the search bar</p>
+    <button onclick="openModal()" style="float: right;">New</button>
+    <div id="search-terms">
+        <!-- Search terms will be added here -->
+    </div>
+</div>
+
 
 <div id="logs" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs"></div>
