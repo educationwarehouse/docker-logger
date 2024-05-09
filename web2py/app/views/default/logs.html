@@ -152,34 +152,36 @@
 
 
     function fetchData(endpoint, elementId, className, itemType) {
-        fetch(endpoint)
-            .then(response => response.json())
-            .then(items => {
-                var divElement = document.getElementById(elementId);
-                divElement.innerHTML = '';
-                for (var i = 0; i < items.length; i++) {
-                    var div = document.createElement('div');
-                    div.className = className;
-                    if (itemType === 'term') {
-                        div.onclick = function() {
-                            addToSearchBar(items[i]);
-                        };
-                    } else if (itemType === 'url') {
-                        var a = document.createElement('a');
-                        a.href = items[i][0];
-                        a.textContent = items[i][1] || items[i][0];
-                        div.appendChild(a);
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(items => {
+                    var divElement = document.getElementById(elementId);
+                    divElement.innerHTML = '';
+                    for (var i = 0; i < items.length; i++) {
+                        var div = document.createElement('div');
+                        div.className = className;
+                        if (itemType === 'term') {
+                            div.textContent = items[i][1] || items[i][0];
+                            div.onclick = function() {
+                                addToSearchBar(items[i]);
+                            };
+                            divElement.appendChild(div); // Corrected line
+                        } else if (itemType === 'url') {
+                            var a = document.createElement('a');
+                            a.href = items[i][0];
+                            a.textContent = items[i][1] || items[i][0];
+                            div.appendChild(a);
+                        }
+                        var deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = (function(item, name) {
+                            return function() { deleteItem(itemType, {url: item, name: name}); };
+                        })(items[i][0], items[i][1]);
+                        div.appendChild(deleteButton);
+                        divElement.appendChild(div);
                     }
-                    var deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.onclick = (function(item, name) {
-                        return function() { deleteItem(itemType, {url: item, name: name}); };
-                    })(items[i][0], items[i][1]);
-                    div.appendChild(deleteButton);
-                    divElement.appendChild(div);
-                }
-            });
-    }
+                });
+        }
 
 
     function deleteItem(item, name) {
