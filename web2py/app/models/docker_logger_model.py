@@ -1,5 +1,5 @@
-db.define_table("url_storage",
-                Field("url", "string")
+db.define_table("url",
+                Field("url", "list:string")
                 )
 db.define_table("search_term",
                 Field("term", "list:string")
