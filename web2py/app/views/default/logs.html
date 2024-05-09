@@ -9,7 +9,26 @@
                 addSearches();
             }
         });
+        // Retrieve filters and search terms from local storage
+        var filters = localStorage.getItem('filters');
+        var searchTerms = localStorage.getItem('searchTerms');
+        // If filters exist, check the corresponding checkboxes
+        if (filters) {
+            filters = filters.split(',');
+            filters.forEach(function(filter) {
+                var checkbox = document.querySelector('#filter-bar input[value="' + filter + '"]');
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        // If search terms exist, set the value of the search input
+        if (searchTerms) {
+            document.getElementById('search-input').value = searchTerms;
+        }
         fetchSearchTerms();
+        fetchUrls();
     }
 
 
@@ -57,6 +76,8 @@
         var filters = Array.from(checkedBoxes).map(c => c.value).join(',');
 
         filterBar('filters', filters);
+        // Store the filters in local storage
+        localStorage.setItem('filters', filters);
     }
 
     function addSearches() {
@@ -67,6 +88,8 @@
         var search = input.split(' ');
 
         filterBar('search', search.join(','));
+        // Store the search terms in local storage
+        localStorage.setItem('searchTerms', search.join(','));
     }
 
     function clearUrl() {
@@ -94,24 +117,28 @@
 
         // Tell htmx to process the changes
         htmx.process(logsDiv);
+        // Clear the filters and search terms from local storage
+        localStorage.removeItem('filters');
+        localStorage.removeItem('searchTerms');
     }
 
-    function openModal() {
-        document.getElementById('modal').style.display = "block";
+    function openModal(search_or_url) {
+        console.log(search_or_url)
+        document.getElementById('modal-' + search_or_url).style.display = "block";
     }
 
-    function closeModal() {
-        document.getElementById('modal').style.display = "none";
+    function closeModal(search_or_url) {
+        document.getElementById('modal-' + search_or_url).style.display = "none";
     }
 
-    function submitSearchTerm() {
-        var term = document.getElementById('new-term').value;
-        var name = document.getElementById('name').value;
-        if (term) {
+    function submitItem(search_or_url) {
+        var item = document.getElementById('new-' + search_or_url).value;
+        var name = document.getElementById('name-' + search_or_url).value;
+        if (item) {
             var params = new URLSearchParams();
-            params.append('term', term);
+            params.append(search_or_url, item);
             params.append('name', name);
-            window.location.href = '/init/default/add_search_term?' + params.toString();
+            window.location.href = '/init/default/add_items?' + params.toString();
         }
     }
 
@@ -145,6 +172,25 @@
             addToSearchBar(term);
         };
     }
+
+
+    function fetchUrls() {
+        fetch('/init/default/get_urls')
+            .then(response => response.json())
+            .then(urls => {
+                var urlsDiv = document.getElementById('urls');
+                urlsDiv.innerHTML = '';  // Clear the div
+                for (var i = 0; i < urls.length; i++) {
+                    var a = document.createElement('a');
+                    a.textContent = urls[i][1] || urls[i][0];
+                    a.href = urls[i][0] + "<br>";  // Set the href to the URL
+                    a.innerHTML = a.innerHTML.link(urls[i][0]) + "<br>";
+                    a.className = 'url';
+                    urlsDiv.appendChild(a);
+                }
+            });
+    }
+
 </script>
 
 <div id="filter-bar">
@@ -155,29 +201,51 @@
 </div>
 
 <div id="search-bar">
-    <input type="text" id="search-input" placeholder="Enter comma separated values">
+    <input type="text" id="search-input" placeholder="Search">
     <button onclick="addSearches()">Search</button>
     <button onclick="clearUrl()">Clear (URL)</button>
 </div>
 
-
-<div id="modal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+<!--modal for search terms-->
+<div id="modal-term" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
         <h2>Add a new search term</h2>
         <input type="text" id="new-term" placeholder="Enter new search term">
         <br>
-        <input type="text" id="name" placeholder="Enter a name (default is search term)">
-        <button onclick="submitSearchTerm()">Submit</button>
-        <button onclick="closeModal()">Close</button>
+        <input type="text" id="name-term" placeholder="Enter a name (default is search term)">
+        <button onclick="submitItem('term')">Submit</button>
+        <button onclick="closeModal('term')">Close</button>
     </div>
 </div>
 
+<!--container for search terms-->
 <div id="search-terms-container">
     <h2>Search Terms</h2>
     <p>Tip: Click on a search term to get it in the search bar</p>
-    <button onclick="openModal()" style="float: right;">New</button>
+    <button onclick="openModal('term')" style="float: right;">New</button>
     <div id="search-terms">
         <!-- Search terms will be added here -->
+    </div>
+</div>
+
+
+<div id="modal-url" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
+        <h2>Add a new URL</h2>
+        <input type="text" id="new-url" placeholder="Enter new URL">
+        <br>
+        <input type="text" id="name-url" placeholder="Enter a name (default is URL)">
+        <button onclick="submitItem('url')">Submit</button>
+        <button onclick="closeModal('url')">Close</button>
+    </div>
+</div>
+
+<div id="urls-container">
+    <h2>URLs</h2>
+    <p>Tip: Click on a URL to open it</p>
+    <button onclick="openModal('url')" style="float: right;">New</button>
+    <div id="urls">
+        <!-- URLs will be added here -->
     </div>
 </div>
 
