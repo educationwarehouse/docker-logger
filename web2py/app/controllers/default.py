@@ -83,3 +83,16 @@ def realtime_logs():
     return dict(logs=logs)
 
 
+def add_search_term():
+    term = request.vars.term
+    name = request.vars.name
+    if term:
+        print("Inserting search term:", term, 'with the name:', name if name else term)
+        db.search_term.insert(term=[term, name])
+        db.commit()
+    redirect(URL("logs"))
+
+
+def get_search_terms():
+    search_terms = db(db.search_term).select()
+    return response.json([term.term for term in search_terms])
