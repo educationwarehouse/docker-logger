@@ -104,3 +104,19 @@ def get_search_terms():
 def get_urls():
     urls = db(db.url).select()
     return response.json([url.url for url in urls])
+
+
+def delete_item():
+    term = request.vars.term
+    url = request.vars.url
+    name = request.vars.name
+    print(term)
+    print(request.vars)
+    if term:
+        print("Deleting search term:", term, 'with the name:', name if name else term)
+        db(db.search_term.term.contains(term)).delete()
+    if url:
+        print("Deleting url:", url, 'with the name:', name if name else url)
+        db(db.url.url.contains(url)).delete()
+    db.commit()
+    redirect(URL("logs"))

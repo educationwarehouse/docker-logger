@@ -27,8 +27,8 @@
         if (searchTerms) {
             document.getElementById('search-input').value = searchTerms;
         }
-        fetchSearchTerms();
-        fetchUrls();
+        fetchData('/init/default/get_search_terms', 'search-terms', 'search-term', 'term');
+        fetchData('/init/default/get_urls', 'urls', 'url', 'url');
     }
 
 
@@ -151,46 +151,43 @@
     }
 
 
-    function fetchSearchTerms() {
-        fetch('/init/default/get_search_terms')
+    function fetchData(endpoint, elementId, className, itemType) {
+        fetch(endpoint)
             .then(response => response.json())
-            .then(search_terms => {
-                var searchTermsDiv = document.getElementById('search-terms');
-                searchTermsDiv.innerHTML = '';  // Clear the div
-                for (var i = 0; i < search_terms.length; i++) {
+            .then(items => {
+                var divElement = document.getElementById(elementId);
+                divElement.innerHTML = '';
+                for (var i = 0; i < items.length; i++) {
                     var div = document.createElement('div');
-                    div.textContent = search_terms[i][1] || search_terms[i][0];
-                    div.className = 'search-term';
-                    div.onclick = createOnClickFunction(search_terms[i]);
-                    searchTermsDiv.appendChild(div);
+                    div.className = className;
+                    if (itemType === 'term') {
+                        div.onclick = function() {
+                            addToSearchBar(items[i]);
+                        };
+                    } else if (itemType === 'url') {
+                        var a = document.createElement('a');
+                        a.href = items[i][0];
+                        a.textContent = items[i][1] || items[i][0];
+                        div.appendChild(a);
+                    }
+                    var deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = (function(item, name) {
+                        return function() { deleteItem(itemType, {url: item, name: name}); };
+                    })(items[i][0], items[i][1]);
+                    div.appendChild(deleteButton);
+                    divElement.appendChild(div);
                 }
             });
     }
 
-    function createOnClickFunction(term) {
-        return function() {
-            addToSearchBar(term);
-        };
+
+    function deleteItem(item, name) {
+        var params = new URLSearchParams();
+        params.append(item, name.url);
+        params.append('name', name.name);
+        window.location.href = '/init/default/delete_item?' + params.toString();
     }
-
-
-    function fetchUrls() {
-        fetch('/init/default/get_urls')
-            .then(response => response.json())
-            .then(urls => {
-                var urlsDiv = document.getElementById('urls');
-                urlsDiv.innerHTML = '';  // Clear the div
-                for (var i = 0; i < urls.length; i++) {
-                    var a = document.createElement('a');
-                    a.textContent = urls[i][1] || urls[i][0];
-                    a.href = urls[i][0] + "<br>";  // Set the href to the URL
-                    a.innerHTML = a.innerHTML.link(urls[i][0]) + "<br>";
-                    a.className = 'url';
-                    urlsDiv.appendChild(a);
-                }
-            });
-    }
-
 </script>
 
 <div id="filter-bar">
