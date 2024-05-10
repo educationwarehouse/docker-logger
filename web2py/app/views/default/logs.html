@@ -205,6 +205,18 @@
         filterBar('exclude', excludedDockerNames);
     }
 
+    function collapseAll() {
+        var divs = ['search-terms-container', 'docker-names-container', 'urls-container'];
+        for (var i = 0; i < divs.length; i++) {
+            var div = document.getElementById(divs[i]);
+            if (div.style.display === "none") {
+                div.style.display = "block";
+            } else {
+                div.style.display = "none";
+            }
+        }
+    }
+
 </script>
 
 <div id="filter-bar">
@@ -220,6 +232,9 @@
     <button onclick="clearUrl()">Clear (URL)</button>
 </div>
 
+
+
+<button onclick="collapseAll()">Toggle All</button>
 
 <!--container for docker names-->
 <div id="docker-names-container">
