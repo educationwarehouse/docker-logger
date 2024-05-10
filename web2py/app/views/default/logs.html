@@ -1,3 +1,131 @@
+<style>
+    #main-container {
+        display: flex;
+        flex-direction: row;
+    }
+
+    #left-side {
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        margin-right: 20px;
+    }
+
+    #left-side > div {
+        flex: 1;
+    }
+
+    #right-side {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        margin-right: 20px;
+    }
+
+    .outlined_inside_container {
+        margin-top: 0;
+        padding-top: 0;
+        border-bottom: 1px solid black;
+    }
+
+    p {
+        margin-top: -15px;
+        padding-top: 0;
+    }
+
+    .outlined {
+        border: 1px solid black;
+        margin-bottom: 10px;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    div.docker-name {
+        cursor: pointer;
+    }
+</style>
+
+<div id="main-container">
+    <div id="left-side">
+        <button onclick="collapseAll()">Collapse all</button>
+        <!--container for docker names-->
+        <div id="docker-names-container" class="outlined">
+            <h2 class="center outlined_inside_container">Docker containers</h2>
+            <p>Tip: Click on a Docker container to get it in the search bar</p>
+            <div id="docker-names">
+                <!-- Docker names will be added here -->
+            </div>
+        </div>
+
+        <!--modal for search terms-->
+        <div id="modal-term" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
+                <h2>Add a new search term</h2>
+                <input type="text" id="new-term" placeholder="Enter new search term">
+                <br>
+                <input type="text" id="name-term" placeholder="Enter a name (default is search term)">
+                <button onclick="submitItem('term')">Submit</button>
+                <button onclick="closeModal('term')">Close</button>
+            </div>
+        </div>
+        <!--container for search terms-->
+        <button onclick="openModal('term')" class="new_button">New</button>
+        <div id="search-terms-container" class="outlined">
+            <h2 class="center outlined_inside_container">Search Terms</h2>
+
+            <p>Tip: Click on a search term to get it in the search bar</p>
+            <div id="search-terms">
+                <!-- Search terms will be added here -->
+            </div>
+        </div>
+
+        <!--modal for URLs-->
+        <div id="modal-url" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
+                <h2>Add a new URL</h2>
+                <input type="text" id="new-url" placeholder="Enter new URL">
+                <br>
+                <input type="text" id="name-url" placeholder="Enter a name (default is URL)">
+                <button onclick="submitItem('url')">Submit</button>
+                <button onclick="closeModal('url')">Close</button>
+            </div>
+        </div>
+        <!--container for URLs-->
+        <button onclick="openModal('url')" class="new_button">New</button>
+        <div id="urls-container" class="outlined">
+            <h2 class="center outlined_inside_container">URLs</h2>
+            <p>Tip: Click on a URL to open it</p>
+            <div id="urls">
+                <!-- URLs will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="right-side">
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search" style="width: 30%">
+            <button onclick="addSearches()">Search</button>
+            <button onclick="clearUrl()">Clear (URL)</button>
+        </div>
+
+
+         <div id="filter-bar">
+            <h2>Filters</h2>
+            {{for log_filter in log_filters:}}
+            <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="addFilters(this)">
+            <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
+            {{pass}}
+        </div>
+
+        <button onclick="collapseDateColumn()" style="margin-top: 20px" >Collapse Date/Time</button>
+        <div id="logs" class="outlined" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs">
+            <!-- Realtime logs content -->
+        </div>
+    </div>
+</div>
+
 <script src="https://unpkg.com/htmx.org"></script>
 
 <script>
@@ -217,87 +345,21 @@
 
     function collapseAll() {
         var divs = ['search-terms-container', 'docker-names-container', 'urls-container'];
+        var buttons = 'new_button';
         for (var i = 0; i < divs.length; i++) {
             var div = document.getElementById(divs[i]);
+            var button = document.getElementsByClassName(buttons)[i];
             if (div.style.display === "none") {
                 div.style.display = "block";
             } else {
                 div.style.display = "none";
             }
+            if (button.style.display === "none") {
+                button.style.display = "block";
+            } else {
+                button.style.display = "none";
+            }
         }
     }
 
 </script>
-
-<div id="filter-bar">
-    {{for log_filter in log_filters:}}
-    <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="addFilters(this)">
-    <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
-    {{pass}}
-</div>
-
-<div id="search-bar">
-    <input type="text" id="search-input" placeholder="Search">
-    <button onclick="addSearches()">Search</button>
-    <button onclick="clearUrl()">Clear (URL)</button>
-</div>
-
-
-
-<button onclick="collapseAll()">Toggle All</button>
-<button onclick="collapseDateColumn()">Collapse Date/Time</button>
-
-<!--container for docker names-->
-<div id="docker-names-container">
-    <h2>Docker Names</h2>
-    <p>Tip: Click on a Docker name to get it in the search bar</p>
-    <div id="docker-names">
-        <!-- Docker names will be added here -->
-    </div>
-</div>
-
-<!--modal for search terms-->
-<div id="modal-term" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
-        <h2>Add a new search term</h2>
-        <input type="text" id="new-term" placeholder="Enter new search term">
-        <br>
-        <input type="text" id="name-term" placeholder="Enter a name (default is search term)">
-        <button onclick="submitItem('term')">Submit</button>
-        <button onclick="closeModal('term')">Close</button>
-    </div>
-</div>
-
-<!--container for search terms-->
-<div id="search-terms-container">
-    <h2>Search Terms</h2>
-    <p>Tip: Click on a search term to get it in the search bar</p>
-    <button onclick="openModal('term')" style="float: right;">New</button>
-    <div id="search-terms">
-        <!-- Search terms will be added here -->
-    </div>
-</div>
-
-
-<div id="modal-url" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
-        <h2>Add a new URL</h2>
-        <input type="text" id="new-url" placeholder="Enter new URL">
-        <br>
-        <input type="text" id="name-url" placeholder="Enter a name (default is URL)">
-        <button onclick="submitItem('url')">Submit</button>
-        <button onclick="closeModal('url')">Close</button>
-    </div>
-</div>
-
-<div id="urls-container">
-    <h2>URLs</h2>
-    <p>Tip: Click on a URL to open it</p>
-    <button onclick="openModal('url')" style="float: right;">New</button>
-    <div id="urls">
-        <!-- URLs will be added here -->
-    </div>
-</div>
-
-
-<div id="logs" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs"></div>
