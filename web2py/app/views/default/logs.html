@@ -22,21 +22,24 @@
                 }
             });
         }
-
         // If search terms exist, set the value of the search input
         if (searchTerms) {
             document.getElementById('search-input').value = searchTerms;
         }
+
         fetchData('/init/default/get_search_terms', 'search-terms', 'search-term', 'term');
         fetchData('/init/default/get_urls', 'urls', 'url', 'url');
         fetchData('/init/default/get_docker_names', 'docker-names', 'docker-name', 'docker')
+
+
+    // Add event listener to all checkboxes
+    document.querySelectorAll('#docker-names input[type=checkbox]').forEach(function(checkbox) {
+        checkbox.addEventListener('change', updateExcludedDockerNames);
+    });
     }
-
-
     function filterBar(paramName, paramValue) {
         // Get the current URL
         var url = new URL(window.location.href);
-
         // Create a URLSearchParams object
         var params = new URLSearchParams(url.search);
 
@@ -47,24 +50,18 @@
             // Remove the parameter
             params.delete(paramName);
         }
-
         // Update the URL's search parameters
         url.search = params.toString();
-
         // Decode the URL
         var decodedUrl = decodeURIComponent(url.toString());
-
         // Update the current URL without reloading the page
         window.history.pushState({path:decodedUrl},'',decodedUrl);
-
         // Get the base URL from the data-base-url attribute
         var baseUrl = document.getElementById('logs').dataset.baseUrl;
-
         // Update the hx-get and hx-poll attributes of the logs div
         var logsDiv = document.getElementById('logs');
         logsDiv.setAttribute('hx-get', baseUrl + (paramValue ? '?' + paramName + '=' + paramValue : ''));
         logsDiv.setAttribute('hx-poll', baseUrl + (paramValue ? '?' + paramName + '=' + paramValue : ''));
-
         // Tell htmx to process the changes
         htmx.process(logsDiv);
     }
@@ -72,10 +69,8 @@
     function addFilters(checkbox) {
         // Get all checked checkboxes
         var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
-
         // Construct a string of their values separated by commas
         var filters = Array.from(checkedBoxes).map(c => c.value).join(',');
-
         filterBar('filters', filters);
         // Store the filters in local storage
         localStorage.setItem('filters', filters);
@@ -84,38 +79,31 @@
     function addSearches() {
         // Get the input from the search bar
         var input = document.getElementById('search-input').value;
-
         // Split the input string by spaces to get the search
         var search = input.split(' ');
-
         filterBar('search', search.join(','));
         // Store the search terms in local storage
         localStorage.setItem('searchTerms', search.join(','));
     }
 
+
     function clearUrl() {
         // Clear the search bar
         document.getElementById('search-input').value = '';
-
-
         // Clear the checkboxes
         var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
         for (var i = 0; i < checkedBoxes.length; i++) {
             checkedBoxes[i].checked = false;
         }
-
         // Get the base URL from the data-base-url attribute
         var baseUrl = document.getElementById('logs').dataset.baseUrl;
-
         // Update the hx-get and hx-poll attributes of the logs div
         var logsDiv = document.getElementById('logs');
         logsDiv.setAttribute('hx-get', baseUrl);
         logsDiv.setAttribute('hx-poll', baseUrl);
-
         // Update the current URL without the search parameter
         var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.pushState({path:newUrl},'',newUrl);
-
         // Tell htmx to process the changes
         htmx.process(logsDiv);
         // Clear the filters and search terms from local storage
@@ -178,6 +166,14 @@
                             div.onclick = function() {
                                 addToSearchBar(currentItem);
                             };
+                            var checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.checked = true;
+                            checkbox.value = items[i];
+                            checkbox.onclick = function () {
+                                updateExcludedDockerNames();
+                            };
+                            div.appendChild(checkbox);
                         }
                         if (itemType !== 'docker') {
                             var deleteButton = document.createElement('button');
@@ -192,13 +188,23 @@
                 });
         }
 
-
     function deleteItem(item, name) {
         var params = new URLSearchParams();
         params.append(item, name.url);
         params.append('name', name.name);
         window.location.href = '/init/default/delete_item?' + params.toString();
     }
+
+    function updateExcludedDockerNames() {
+        // Get all unchecked checkboxes
+        var uncheckedBoxes = document.querySelectorAll('#docker-names input[type=checkbox]:not(:checked)');
+        // Log the uncheckedBoxes NodeList
+        console.log('Unchecked boxes:', uncheckedBoxes);
+        // Construct a string of their values separated by commas
+        var excludedDockerNames = Array.from(uncheckedBoxes).map(c => c.value).join(',');
+        filterBar('exclude', excludedDockerNames);
+    }
+
 </script>
 
 <div id="filter-bar">

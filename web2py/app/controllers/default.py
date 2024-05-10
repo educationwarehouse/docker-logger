@@ -58,12 +58,17 @@ def realtime_logs():
     url = urlparse(request.env.http_referer)
     filters = parse_qs(url.query).get("filters", [""])[0].split(",")
     search_terms = parse_qs(url.query).get("search", [""])[0].split(",")
+    exclude_docker_names = parse_qs(url.query).get("exclude", [""])[0].split(",")
+    # print(exclude_docker_names)
     log_files = glob.glob("../logs/*.log", recursive=True)
     logs = []
     list_of_all_docker_names = []
     for log_file in log_files:
         # Extract the Docker name from the log file name
         docker_name = os.path.basename(log_file).split(".")[0]
+        # Skip this log file if its docker name is in the list of docker names to exclude
+        if docker_name in exclude_docker_names:
+            continue
         # Get all Docker names
         list_of_all_docker_names = [
             os.path.basename(log_file).split(".")[0]
@@ -101,8 +106,12 @@ def realtime_logs():
 
 
 def get_docker_names():
-    docker_names = [os.path.basename(log_file).split('.')[0] for log_file in glob.glob('../logs/*.log', recursive=True)]
+    docker_names = [
+        os.path.basename(log_file).split(".")[0]
+        for log_file in glob.glob("../logs/*.log", recursive=True)
+    ]
     return response.json(docker_names)
+
 
 def add_items():
     term = request.vars.term
