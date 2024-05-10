@@ -29,6 +29,7 @@
         }
         fetchData('/init/default/get_search_terms', 'search-terms', 'search-term', 'term');
         fetchData('/init/default/get_urls', 'urls', 'url', 'url');
+        fetchData('/init/default/get_docker_names', 'docker-names', 'docker-name', 'docker')
     }
 
 
@@ -142,12 +143,12 @@
         }
     }
 
-    function addToSearchBar(term) {
+    function addToSearchBar(item) {
         var searchInput = document.getElementById('search-input');
         if (searchInput.value) {
             searchInput.value += ',';
         }
-        searchInput.value += term[0];
+        searchInput.value += item;
     }
 
 
@@ -157,27 +158,35 @@
                 .then(items => {
                     var divElement = document.getElementById(elementId);
                     divElement.innerHTML = '';
-                    for (var i = 0; i < items.length; i++) {
+                    for (let i = 0; i < items.length; i++) {
                         var div = document.createElement('div');
                         div.className = className;
+                        let currentItem = items[i];
                         if (itemType === 'term') {
                             div.textContent = items[i][1] || items[i][0];
                             div.onclick = function() {
-                                addToSearchBar(items[i]);
+                                addToSearchBar(currentItem[0]);
                             };
-                            divElement.appendChild(div); // Corrected line
+                            divElement.appendChild(div);
                         } else if (itemType === 'url') {
                             var a = document.createElement('a');
                             a.href = items[i][0];
                             a.textContent = items[i][1] || items[i][0];
                             div.appendChild(a);
+                        } else if (itemType === 'docker') {
+                            div.textContent = items[i];
+                            div.onclick = function() {
+                                addToSearchBar(currentItem);
+                            };
                         }
-                        var deleteButton = document.createElement('button');
-                        deleteButton.textContent = 'Delete';
-                        deleteButton.onclick = (function(item, name) {
-                            return function() { deleteItem(itemType, {url: item, name: name}); };
-                        })(items[i][0], items[i][1]);
-                        div.appendChild(deleteButton);
+                        if (itemType !== 'docker') {
+                            var deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Delete';
+                            deleteButton.onclick = (function(item, name) {
+                                return function() { deleteItem(itemType, {url: item, name: name}); };
+                            })(items[i][0], items[i][1]);
+                            div.appendChild(deleteButton);
+                        }
                         divElement.appendChild(div);
                     }
                 });
@@ -203,6 +212,16 @@
     <input type="text" id="search-input" placeholder="Search">
     <button onclick="addSearches()">Search</button>
     <button onclick="clearUrl()">Clear (URL)</button>
+</div>
+
+
+<!--container for docker names-->
+<div id="docker-names-container">
+    <h2>Docker Names</h2>
+    <p>Tip: Click on a Docker name to get it in the search bar</p>
+    <div id="docker-names">
+        <!-- Docker names will be added here -->
+    </div>
 </div>
 
 <!--modal for search terms-->
