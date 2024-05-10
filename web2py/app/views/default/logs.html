@@ -66,7 +66,7 @@
         htmx.process(logsDiv);
     }
 
-    function addFilters(checkbox) {
+    function addFilters() {
         // Get all checked checkboxes
         var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
         // Construct a string of their values separated by commas
@@ -84,6 +84,18 @@
         filterBar('search', search.join(','));
         // Store the search terms in local storage
         localStorage.setItem('searchTerms', search.join(','));
+    }
+
+    function collapseDateColumn() {
+        var url = new URL(window.location.href);
+        // Update the URL
+        if (url.searchParams.has('timestamp')) {
+            // If the Datum column was not visible, remove 'timestamp' from the URL
+            filterBar('timestamp', '');
+        } else {
+            // If the Datum column was visible, add 'timestamp=false' to the URL
+            filterBar('timestamp', 'false');
+        }
     }
 
 
@@ -112,7 +124,6 @@
     }
 
     function openModal(search_or_url) {
-        console.log(search_or_url)
         document.getElementById('modal-' + search_or_url).style.display = "block";
     }
 
@@ -199,7 +210,6 @@
         // Get all unchecked checkboxes
         var uncheckedBoxes = document.querySelectorAll('#docker-names input[type=checkbox]:not(:checked)');
         // Log the uncheckedBoxes NodeList
-        console.log('Unchecked boxes:', uncheckedBoxes);
         // Construct a string of their values separated by commas
         var excludedDockerNames = Array.from(uncheckedBoxes).map(c => c.value).join(',');
         filterBar('exclude', excludedDockerNames);
@@ -235,6 +245,7 @@
 
 
 <button onclick="collapseAll()">Toggle All</button>
+<button onclick="collapseDateColumn()">Collapse Date/Time</button>
 
 <!--container for docker names-->
 <div id="docker-names-container">

@@ -7,13 +7,17 @@
     <table>
         <tr>
             <th>Docker container</th>
-            <th>Datum</th>
-            <th>Logregel</th>
+            {{if not collapse_timestamp:}}
+                <th class="date-column">Date/Time</th>
+            {{pass}}
+            <th>Logline</th>
         </tr>
         {{for log in logs:}}
         <tr>
             <td>{{=log[0]}}</td>
-            <td>{{=log[1]}}</td>
+            {{if not collapse_timestamp:}}
+                <td class="date-column">{{=log[1]}}</td>
+            {{pass}}
             <td>{{=log[2]}}</td>
         </tr>
         {{pass}}
