@@ -77,9 +77,15 @@ def realtime_logs():
                     if "logs" in line and "debug" in line:
                         continue
                     # Only include the log if it matches one of the filters or search terms
-                    if (not filters or any(filter in line for filter in filters)) and (
+                    if (
+                        not filters
+                        or any(filter.lower() in line.lower() for filter in filters)
+                    ) and (
                         not search_terms
-                        or any(search_term in line for search_term in search_terms)
+                        or any(
+                            search_term.lower() in line.lower()
+                            for search_term in search_terms
+                        )
                     ):
                         # Extract the datetime string from the log line
                         datetime_str = line[
