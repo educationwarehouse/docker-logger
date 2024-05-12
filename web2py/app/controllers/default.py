@@ -98,7 +98,7 @@ def realtime_logs():
                         logs.append((docker_name, timestamp, line))
     # Sort the logs by datetime
     logs = sorted(logs, key=lambda log: log[1])
-    logs = logs[-10:]
+    logs = logs[-100:]
     return dict(logs=logs, collapse_timestamp=collapse_timestamp)
 
 

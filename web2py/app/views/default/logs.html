@@ -1,4 +1,9 @@
 <style>
+    body {
+        background: dimgrey;
+        color: lightgrey;
+    }
+
     #main-container {
         display: flex;
         flex-direction: row;
@@ -9,10 +14,12 @@
         display: flex;
         flex-direction: column;
         margin-right: 20px;
+        overflow: auto;
     }
 
     #left-side > div {
         flex: 1;
+        overflow: auto;
     }
 
     #right-side {
@@ -25,7 +32,15 @@
     .outlined_inside_container {
         margin-top: 0;
         padding-top: 0;
-        border-bottom: 1px solid black;
+        border-bottom: 1px solid white;
+    }
+
+    button {
+        background: darkgrey;
+    }
+
+    input {
+        background: darkgrey;
     }
 
     p {
@@ -34,8 +49,10 @@
     }
 
     .outlined {
-        border: 1px solid black;
+        border: 1px solid white;
         margin-bottom: 10px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
     }
 
     .center {
@@ -45,87 +62,125 @@
     div.docker-name {
         cursor: pointer;
     }
+
+    .search_bar {
+        width: 30%;
+    }
+
+    .modal_content {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        text-align: center;
+    }
+
+    .modal_content > div {
+        background-color: grey;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    #scroll_logs {
+        height: 65vh;
+        overflow: auto;
+    }
+
 </style>
+<html>
+    <body>
+        <div id="main-container">
+            <div id="left-side">
+                <button onclick="collapseAll()">Collapse all</button>
+                <!--container for docker names-->
+                <div id="docker-names-container" class="outlined">
+                    <h2 class="center outlined_inside_container">Docker containers</h2>
+                    <p>Tip: Click on a Docker container to get it in the search bar</p>
+                    <div id="docker-names">
+                        <!-- Docker names will be added here -->
+                    </div>
+                </div>
 
-<div id="main-container">
-    <div id="left-side">
-        <button onclick="collapseAll()">Collapse all</button>
-        <!--container for docker names-->
-        <div id="docker-names-container" class="outlined">
-            <h2 class="center outlined_inside_container">Docker containers</h2>
-            <p>Tip: Click on a Docker container to get it in the search bar</p>
-            <div id="docker-names">
-                <!-- Docker names will be added here -->
+                <!--modal for search terms-->
+                <div id="modal-term" class="modal_content">
+                    <div>
+                        <h2>Add a new search term</h2>
+                        <input type="text" id="new-term" placeholder="Enter new search term" class="search_bar">
+                        <br>
+                        <input type="text" id="name-term" placeholder="Enter a name (default is search term)" class="search_bar">
+                        <br>
+                        <br>
+                        <button onclick="submitItem('term')">Submit</button>
+                        <button onclick="closeModal('term')">Close</button>
+                    </div>
+                </div>
+                <!--container for search terms-->
+                <button onclick="openModal('term')" class="new_button">New</button>
+                <div id="search-terms-container" class="outlined">
+                    <h2 class="center outlined_inside_container">Search Terms</h2>
+
+                    <p>Tip: Click on a search term to get it in the search bar</p>
+                    <div id="search-terms">
+                        <!-- Search terms will be added here -->
+                    </div>
+                </div>
+
+                <!--modal for URLs-->
+                <div id="modal-url" class="modal_content">
+                    <div>
+                        <h2>Add a new URL</h2>
+                        <input type="text" id="new-url" placeholder="Enter new URL" class="search_bar">
+                        <br>
+                        <input type="text" id="name-url" placeholder="Enter a name (default is URL)" class="search_bar">
+                        <br>
+                        <br>
+                        <button onclick="submitItem('url')">Submit</button>
+                        <button onclick="closeModal('url')">Close</button>
+                    </div>
+                </div>
+                <!--container for URLs-->
+                <button onclick="openModal('url')" class="new_button">New</button>
+                <div id="urls-container" class="outlined">
+                    <h2 class="center outlined_inside_container">URLs</h2>
+                    <p>Tip: Click on a URL to open it</p>
+                    <div id="urls">
+                        <!-- URLs will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="right-side">
+                <div id="search-bar">
+                    <input type="text" id="search-input" placeholder="Search" class="search_bar">
+                    <button onclick="addSearches()">Search</button>
+                    <button onclick="clearUrl()">Clear (URL)</button>
+                </div>
+
+                 <div id="filter-bar">
+                    <h2 style="margin-bottom: -5px">Filters</h2>
+                    {{for log_filter in log_filters:}}
+                    <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="addFilters(this)">
+                    <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
+                    {{pass}}
+                </div>
+
+                <button onclick="collapseDateColumn()" style="margin-top: 20px" >Collapse Date/Time</button>
+                <div id="scroll_logs">
+                    <div id="logs" class="outlined" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs">
+                        <!-- Realtime logs content -->
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!--modal for search terms-->
-        <div id="modal-term" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
-                <h2>Add a new search term</h2>
-                <input type="text" id="new-term" placeholder="Enter new search term">
-                <br>
-                <input type="text" id="name-term" placeholder="Enter a name (default is search term)">
-                <button onclick="submitItem('term')">Submit</button>
-                <button onclick="closeModal('term')">Close</button>
-            </div>
-        </div>
-        <!--container for search terms-->
-        <button onclick="openModal('term')" class="new_button">New</button>
-        <div id="search-terms-container" class="outlined">
-            <h2 class="center outlined_inside_container">Search Terms</h2>
-
-            <p>Tip: Click on a search term to get it in the search bar</p>
-            <div id="search-terms">
-                <!-- Search terms will be added here -->
-            </div>
-        </div>
-
-        <!--modal for URLs-->
-        <div id="modal-url" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
-                <h2>Add a new URL</h2>
-                <input type="text" id="new-url" placeholder="Enter new URL">
-                <br>
-                <input type="text" id="name-url" placeholder="Enter a name (default is URL)">
-                <button onclick="submitItem('url')">Submit</button>
-                <button onclick="closeModal('url')">Close</button>
-            </div>
-        </div>
-        <!--container for URLs-->
-        <button onclick="openModal('url')" class="new_button">New</button>
-        <div id="urls-container" class="outlined">
-            <h2 class="center outlined_inside_container">URLs</h2>
-            <p>Tip: Click on a URL to open it</p>
-            <div id="urls">
-                <!-- URLs will be added here -->
-            </div>
-        </div>
-    </div>
-
-    <div id="right-side">
-        <div id="search-bar">
-            <input type="text" id="search-input" placeholder="Search" style="width: 30%">
-            <button onclick="addSearches()">Search</button>
-            <button onclick="clearUrl()">Clear (URL)</button>
-        </div>
-
-
-         <div id="filter-bar">
-            <h2>Filters</h2>
-            {{for log_filter in log_filters:}}
-            <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="addFilters(this)">
-            <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
-            {{pass}}
-        </div>
-
-        <button onclick="collapseDateColumn()" style="margin-top: 20px" >Collapse Date/Time</button>
-        <div id="logs" class="outlined" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs">
-            <!-- Realtime logs content -->
-        </div>
-    </div>
-</div>
-
+    </body>
+</html>
 <script src="https://unpkg.com/htmx.org"></script>
 
 <script>
@@ -164,7 +219,14 @@
     document.querySelectorAll('#docker-names input[type=checkbox]').forEach(function(checkbox) {
         checkbox.addEventListener('change', updateExcludedDockerNames);
     });
+
+    document.getElementById('new-url').value = window.location.href;
+     // Scroll to the bottom of the logs div
+    var logsDiv = document.getElementById('scroll_logs');
+    logsDiv.scrollTop = logsDiv.scrollHeight;
     }
+
+
     function filterBar(paramName, paramValue) {
         // Get the current URL
         var url = new URL(window.location.href);
@@ -344,20 +406,26 @@
     }
 
     function collapseAll() {
-        var divs = ['search-terms-container', 'docker-names-container', 'urls-container'];
+        var divs = ['search-bar', 'filter-bar', 'docker-names-container', 'search-terms-container', 'urls-container'];
         var buttons = 'new_button';
         for (var i = 0; i < divs.length; i++) {
             var div = document.getElementById(divs[i]);
             var button = document.getElementsByClassName(buttons)[i];
-            if (div.style.display === "none") {
-                div.style.display = "block";
-            } else {
-                div.style.display = "none";
+            if (div) {
+                if (div.style.display === "none") {
+                    div.style.display = "block";
+                    scroll_logs.style.height = '65vh';
+                } else {
+                    div.style.display = "none";
+                    scroll_logs.style.height = '90vh';
+                }
             }
-            if (button.style.display === "none") {
-                button.style.display = "block";
-            } else {
-                button.style.display = "none";
+            if (button) {
+                if (button.style.display === "none") {
+                    button.style.display = "block";
+                } else {
+                    button.style.display = "none";
+                }
             }
         }
     }
