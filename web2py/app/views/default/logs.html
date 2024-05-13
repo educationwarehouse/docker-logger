@@ -37,10 +37,12 @@
 
     button {
         background: darkgrey;
+        cursor: pointer;
     }
 
     input {
         background: darkgrey;
+        cursor: pointer;
     }
 
     p {
@@ -60,6 +62,10 @@
     }
 
     div.docker-name {
+        cursor: pointer;
+    }
+
+    div.search-term {
         cursor: pointer;
     }
 
@@ -221,9 +227,6 @@
     });
 
     document.getElementById('new-url').value = window.location.href;
-     // Scroll to the bottom of the logs div
-    var logsDiv = document.getElementById('scroll_logs');
-    logsDiv.scrollTop = logsDiv.scrollHeight;
     }
 
 
@@ -372,6 +375,7 @@
                             checkbox.checked = true;
                             checkbox.value = items[i];
                             checkbox.onclick = function () {
+                                event.stopPropagation();
                                 updateExcludedDockerNames();
                             };
                             div.appendChild(checkbox);
@@ -380,7 +384,9 @@
                             var deleteButton = document.createElement('button');
                             deleteButton.textContent = 'Delete';
                             deleteButton.onclick = (function(item, name) {
-                                return function() { deleteItem(itemType, {url: item, name: name}); };
+                                return function() {
+                                    event.stopPropagation();
+                                    deleteItem(itemType, {url: item, name: name}); };
                             })(items[i][0], items[i][1]);
                             div.appendChild(deleteButton);
                         }
