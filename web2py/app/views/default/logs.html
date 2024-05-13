@@ -69,6 +69,10 @@
         cursor: pointer;
     }
 
+    a {
+        color: lightgrey;
+    }
+
     .search_bar {
         width: 30%;
     }
@@ -350,6 +354,9 @@
                 .then(items => {
                     var divElement = document.getElementById(elementId);
                     divElement.innerHTML = '';
+                    if (itemType === 'docker') {
+                        items.sort();
+                    }
                     for (let i = 0; i < items.length; i++) {
                         var div = document.createElement('div');
                         div.className = className;
