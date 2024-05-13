@@ -8,6 +8,7 @@ import glob
 import os
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
+import re
 
 
 def verify_password(password, hashed_password):
@@ -83,7 +84,7 @@ def realtime_logs():
                     ) and (
                         not search_terms
                         or any(
-                            search_term.lower() in line.lower()
+                            re.search(search_term.lower(), line.lower())
                             for search_term in search_terms
                         )
                     ):
