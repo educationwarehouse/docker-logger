@@ -45,35 +45,32 @@ def index():
 
 
 def logs():
-    # Fetch log filters from the database
-    log_filters = db(db.log_filter).select()
+    # get all the filters from the database
+    filters = db(db.log_filter).select(db.log_filter.log_filter)
 
-    return dict(
-        log_filters=log_filters,
-        docker_names=get_docker_names(),
-        search_terms=get_search_terms(),
-        urls=get_urls(),
-        request_current_url=request.env.http_referer,
-    )
-
-
-def get_docker_names():
+    # get the Docker names from the log files
     log_files = glob.glob("../logs/*.log", recursive=True)
     docker_names = []
     for log_file in log_files:
         docker_name = os.path.basename(log_file).split(".")[0]
         docker_names.append(docker_name)
-    return docker_names
 
-
-def get_search_terms():
+    # get all the search terms from the database
     search_terms = db(db.search_term).select(db.search_term.term)
-    return search_terms
 
-
-def get_urls():
+    # get the urls from the database
     urls = db(db.url).select(db.url.url)
-    return urls
+
+    # Get the filters from the request variables
+    url_filters = request.vars.filters.split(",") if request.vars.filters else []
+
+    return dict(
+        filters=filters,
+        url_filters=url_filters,
+        docker_names=docker_names,
+        search_terms=search_terms,
+        urls=urls,
+    )
 
 
 def realtime_logs():
@@ -157,6 +154,7 @@ def manipulate_url(url, param_name, param_value):
 
 def add_filters_to_url():
     filters = request.vars["filter"]
+    print("Filters:", filters)
     new_url = manipulate_url(request.env.http_referer, "filters", filters)
     redirect(URL(new_url))
 
@@ -217,27 +215,27 @@ def submit_item():
     redirect(URL("logs"))
 
 
-def delete_item():
-    item_type = request.vars.item_type
-    item = request.vars.item
-    name = request.vars.name
-    if item_type == "term":
-        db(db.search_term.term.contains(item)).delete()
-    elif item_type == "url":
-        db(db.url.url.contains(item)).delete()
-    db.commit()
-    redirect(URL("logs"))
+# def delete_item():
+#     item_type = request.vars.item_type
+#     item = request.vars.item
+#     name = request.vars.name
+#     if item_type == "term":
+#         db(db.search_term.term.contains(item)).delete()
+#     elif item_type == "url":
+#         db(db.url.url.contains(item)).delete()
+#     db.commit()
+#     redirect(URL("logs"))
 
 
-def delete_item():
-    term = request.vars.term
-    url = request.vars.url
-    name = request.vars.name
-    if term:
-        print("Deleting search term:", term, "with the name:", name if name else term)
-        db(db.search_term.term.contains(term)).delete()
-    if url:
-        print("Deleting url:", url, "with the name:", name if name else url)
-        db(db.url.url.contains(url)).delete()
-    db.commit()
-    redirect(URL("logs"))
+# def delete_item():
+#     term = request.vars.term
+#     url = request.vars.url
+#     name = request.vars.name
+#     if term:
+#         print("Deleting search term:", term, "with the name:", name if name else term)
+#         db(db.search_term.term.contains(term)).delete()
+#     if url:
+#         print("Deleting url:", url, "with the name:", name if name else url)
+#         db(db.url.url.contains(url)).delete()
+#     db.commit()
+#     redirect(URL("logs"))

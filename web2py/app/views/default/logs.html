@@ -153,7 +153,7 @@
                 <div id="modal-url" class="modal_content">
                     <form action="{{=URL('default', 'submit_item')}}" method="post">
                         <h2>Add a new URL</h2>
-                        <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar" value="{{=request_current_url}}">
+                        <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar" id="url-input">
                         <br>
                         <input type="text" name="nickname" placeholder="Enter a name (default is URL)" class="search_bar">
                         <br>
@@ -192,9 +192,11 @@
 
                  <div id="filter-bar">
                     <h2 style="margin-bottom: -5px">Filters</h2>
-                    {{for log_filter in log_filters:}}
-                    <input type="checkbox" id="{{=log_filter.log_filter}}" name="{{=log_filter.log_filter}}" value="{{=log_filter.log_filter}}" onchange="addFilters(this)">
-                    <label for="{{=log_filter.log_filter}}">{{=log_filter.log_filter}}</label><br>
+                    {{for filter in filters:}}
+                        <form action="{{=URL('default', 'add_filters_to_url')}}" method="post">
+                            <input type="checkbox" name="filter" value="{{=filter['log_filter']}}" {{if filter['log_filter'] in url_filters:}}checked{{pass}} onchange="this.form.submit()">
+                            <label>{{=filter['log_filter']}}</label>
+                        </form>
                     {{pass}}
                 </div>
 
@@ -214,25 +216,9 @@
 <script src="https://unpkg.com/htmx.org"></script>
 
 <script>
-    window.onload = function (){
-        search_input = document.getElementById('search-input');
-        search_input.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-            }
-        });
-
-        // fetchData('/init/default/get_search_terms', 'search-terms', 'search-term', 'term');
-        // fetchData('/init/default/get_urls', 'urls', 'url', 'url');
-        // fetchData('/init/default/get_docker_names', 'docker-names', 'docker-name', 'docker')
-
-
-    // Add event listener to all checkboxes
-    document.querySelectorAll('#docker-names input[type=checkbox]').forEach(function(checkbox) {
-        checkbox.addEventListener('change', updateExcludedDockerNames);
-    });
-    }
-
+    window.onload = function() {
+    document.getElementById('url-input').value = window.location.href;
+}
 
     function openModal(search_or_url) {
         document.getElementById('modal-' + search_or_url).style.display = "block";
@@ -306,14 +292,6 @@
         window.location.href = '/init/default/delete_item?' + params.toString();
     }
 
-    function updateExcludedDockerNames() {
-        // Get all unchecked checkboxes
-        var uncheckedBoxes = document.querySelectorAll('#docker-names input[type=checkbox]:not(:checked)');
-        // Log the uncheckedBoxes NodeList
-        // Construct a string of their values separated by commas
-        var excludedDockerNames = Array.from(uncheckedBoxes).map(c => c.value).join(',');
-        filterBar('exclude', excludedDockerNames);
-    }
 
     function collapseAll() {
         var divs = ['search-bar', 'filter-bar', 'docker-names-container', 'search-terms-container', 'urls-container'];
