@@ -143,7 +143,7 @@ def add_searches_to_url():
 
 def add_to_search_bar(item, search_input):
     if search_input:
-        search_input += ','
+        search_input += ","
     search_input += item
     return search_input
 
@@ -172,13 +172,15 @@ def collapse_date_column():
 
 
 def submit_item():
-    item_type = request.vars.item_type
-    item = request.vars.item
-    name = request.vars.name
-    if item_type == "term":
-        db.search_term.insert(term=[item, name])
-    elif item_type == "url":
-        db.url.insert(url=[item, name])
+    term = request.vars["default-term"]
+    url = request.vars["default-url"]
+    name = request.vars["nickname"]
+    if term:
+        print("Inserting search term:", term, "with the name:", name if name else term)
+        db.search_term.insert(term=[term, name])
+    if url:
+        print("Inserting url:", url, "with the name:", name if name else url)
+        db.url.insert(url=[url, name])
     db.commit()
     redirect(URL("logs"))
 
@@ -201,20 +203,6 @@ def get_docker_names():
         for log_file in glob.glob("../logs/*.log", recursive=True)
     ]
     return response.json(docker_names)
-
-
-def add_items():
-    term = request.vars.term
-    url = request.vars.url
-    name = request.vars.name
-    if term:
-        print("Inserting search term:", term, "with the name:", name if name else term)
-        db.search_term.insert(term=[term, name])
-    if url:
-        print("Inserting url:", url, "with the name:", name if name else url)
-        db.url.insert(url=[url, name])
-    db.commit()
-    redirect(URL("logs"))
 
 
 def get_search_terms():
