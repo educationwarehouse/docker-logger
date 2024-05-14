@@ -154,7 +154,6 @@ def manipulate_url(url, param_name, param_value):
 
 def add_filters_to_url():
     filters = request.vars["filter"]
-    print("Filters:", filters)
     new_url = manipulate_url(request.env.http_referer, "filters", filters)
     redirect(URL(new_url))
 
@@ -169,13 +168,6 @@ def add_docker_names_to_url():
     docker_names = request.vars["docker_name"]
     new_url = manipulate_url(request.env.http_referer, "exclude", docker_names)
     redirect(URL(new_url))
-
-
-def add_to_search_bar(item, search_input):
-    if search_input:
-        search_input += ","
-    search_input += item
-    return search_input
 
 
 def clear_url():

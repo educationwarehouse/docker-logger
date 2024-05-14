@@ -117,7 +117,7 @@
                     <p>Tip: Click on a Docker container to get it in the search bar</p>
                     <div id="docker-names">
                         {{for docker_name in docker_names:}}
-                        <div class="docker-name">{{=docker_name}}</div>
+                        <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
                         {{pass}}
                     </div>
                 </div>
@@ -140,13 +140,13 @@
                 <div id="search-terms-container" class="outlined">
                     <h2 class="center outlined_inside_container">Search Terms</h2>
                     <p>Tip: Click on a search term to get it in the search bar</p>
-                    <div id="search-terms">
-                        {{for search_term in search_terms:}}
-                            {{for key, value in search_term.items():}}
-                                <div class="search-term">{{=value[1] if len(value) > 1 else value[0]}}</div>
+                        <div id="search-terms">
+                            {{for search_term in search_terms:}}
+                                {{for key, value in search_term.items():}}
+                                    <div class="search-term" onclick="addToSearchBar('{{=value[0]}}')">{{=value[1] if len(value) > 1 else value[0]}}</div>
+                                {{pass}}
                             {{pass}}
-                        {{pass}}
-                    </div>
+                        </div>
                 </div>
 
                 <!--modal for URLs-->
@@ -228,8 +228,13 @@
         document.getElementById('modal-' + search_or_url).style.display = "none";
     }
 
-
-
+    function addToSearchBar(term) {
+        var searchInput = document.getElementById('search-input');
+        if (searchInput.value) {
+            searchInput.value += ',';
+        }
+        searchInput.value += term;
+    }
 
     // function fetchData(endpoint, elementId, className, itemType) {
     //         fetch(endpoint)
