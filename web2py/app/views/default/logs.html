@@ -168,9 +168,13 @@
 
             <div id="right-side">
                 <div id="search-bar">
-                    <input type="text" id="search-input" placeholder="Search" class="search_bar">
-                    <button onclick="addSearches()">Search</button>
-                    <button onclick="clearUrl()">Clear (URL)</button>
+                    <form action="{{=URL('default', 'add_searches_to_url')}}" method="post">
+                        <input type="text" id="search-input" name="search" placeholder="Search" class="search_bar">
+                        <input type="submit" value="Search">
+                    </form>
+                    <form action="{{=URL('default', 'clear_url')}}" method="post">
+                        <input type="submit" value="Clear (URL)">
+                    </form>
                 </div>
 
                  <div id="filter-bar">
@@ -181,7 +185,10 @@
                     {{pass}}
                 </div>
 
-                <button onclick="collapseDateColumn()" style="margin-top: 20px" >Collapse Date/Time</button>
+                <form action="{{=URL('default', 'collapse_date_column')}}" method="post">
+                    <input type="submit" value="Collapse Date/Time">
+                </form>
+
                 <div id="scroll_logs">
                     <div id="logs" class="outlined" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs">
                         <!-- Realtime logs content -->
@@ -199,26 +206,8 @@
         search_input.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                addSearches();
             }
         });
-        // Retrieve filters and search terms from local storage
-        var filters = localStorage.getItem('filters');
-        var searchTerms = localStorage.getItem('searchTerms');
-        // If filters exist, check the corresponding checkboxes
-        if (filters) {
-            filters = filters.split(',');
-            filters.forEach(function(filter) {
-                var checkbox = document.querySelector('#filter-bar input[value="' + filter + '"]');
-                if (checkbox) {
-                    checkbox.checked = true;
-                }
-            });
-        }
-        // If search terms exist, set the value of the search input
-        if (searchTerms) {
-            document.getElementById('search-input').value = searchTerms;
-        }
 
         fetchData('/init/default/get_search_terms', 'search-terms', 'search-term', 'term');
         fetchData('/init/default/get_urls', 'urls', 'url', 'url');
@@ -233,92 +222,6 @@
     document.getElementById('new-url').value = window.location.href;
     }
 
-
-    function filterBar(paramName, paramValue) {
-        // Get the current URL
-        var url = new URL(window.location.href);
-        // Create a URLSearchParams object
-        var params = new URLSearchParams(url.search);
-
-        if (paramValue) {
-            // Set the parameter
-            params.set(paramName, paramValue);
-        } else {
-            // Remove the parameter
-            params.delete(paramName);
-        }
-        // Update the URL's search parameters
-        url.search = params.toString();
-        // Decode the URL
-        var decodedUrl = decodeURIComponent(url.toString());
-        // Update the current URL without reloading the page
-        window.history.pushState({path:decodedUrl},'',decodedUrl);
-        // Get the base URL from the data-base-url attribute
-        var baseUrl = document.getElementById('logs').dataset.baseUrl;
-        // Update the hx-get and hx-poll attributes of the logs div
-        var logsDiv = document.getElementById('logs');
-        logsDiv.setAttribute('hx-get', baseUrl + (paramValue ? '?' + paramName + '=' + paramValue : ''));
-        logsDiv.setAttribute('hx-poll', baseUrl + (paramValue ? '?' + paramName + '=' + paramValue : ''));
-        // Tell htmx to process the changes
-        htmx.process(logsDiv);
-    }
-
-    function addFilters() {
-        // Get all checked checkboxes
-        var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
-        // Construct a string of their values separated by commas
-        var filters = Array.from(checkedBoxes).map(c => c.value).join(',');
-        filterBar('filters', filters);
-        // Store the filters in local storage
-        localStorage.setItem('filters', filters);
-    }
-
-    function addSearches() {
-        // Get the input from the search bar
-        var input = document.getElementById('search-input').value;
-        // Split the input string by spaces to get the search
-        var search = input.split(' ');
-        filterBar('search', search.join(','));
-        // Store the search terms in local storage
-        localStorage.setItem('searchTerms', search.join(','));
-    }
-
-    function collapseDateColumn() {
-        var url = new URL(window.location.href);
-        // Update the URL
-        if (url.searchParams.has('timestamp')) {
-            // If the Datum column was not visible, remove 'timestamp' from the URL
-            filterBar('timestamp', '');
-        } else {
-            // If the Datum column was visible, add 'timestamp=false' to the URL
-            filterBar('timestamp', 'false');
-        }
-    }
-
-
-    function clearUrl() {
-        // Clear the search bar
-        document.getElementById('search-input').value = '';
-        // Clear the checkboxes
-        var checkedBoxes = document.querySelectorAll('#filter-bar input[type=checkbox]:checked');
-        for (var i = 0; i < checkedBoxes.length; i++) {
-            checkedBoxes[i].checked = false;
-        }
-        // Get the base URL from the data-base-url attribute
-        var baseUrl = document.getElementById('logs').dataset.baseUrl;
-        // Update the hx-get and hx-poll attributes of the logs div
-        var logsDiv = document.getElementById('logs');
-        logsDiv.setAttribute('hx-get', baseUrl);
-        logsDiv.setAttribute('hx-poll', baseUrl);
-        // Update the current URL without the search parameter
-        var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.pushState({path:newUrl},'',newUrl);
-        // Tell htmx to process the changes
-        htmx.process(logsDiv);
-        // Clear the filters and search terms from local storage
-        localStorage.removeItem('filters');
-        localStorage.removeItem('searchTerms');
-    }
 
     function openModal(search_or_url) {
         document.getElementById('modal-' + search_or_url).style.display = "block";

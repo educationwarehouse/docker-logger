@@ -7,7 +7,7 @@ import bcrypt
 import glob
 import os
 from datetime import datetime
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urlencode
 import re
 
 
@@ -101,6 +101,98 @@ def realtime_logs():
     logs = sorted(logs, key=lambda log: log[1], reverse=True)
     logs = logs[:100]
     return dict(logs=logs, collapse_timestamp=collapse_timestamp)
+
+def manipulate_url(url, param_name, param_value):
+    # Parse the URL into components
+    url_parts = urlparse(url)
+    # Parse the URL parameters
+    params = parse_qs(url_parts.query)
+
+    if param_value:
+        # If the parameter already exists, append the new value
+        if param_name in params:
+            # Avoid duplicate search terms
+            if param_value not in params[param_name][0].split(","):
+                params[param_name][0] += "," + param_value
+        else:
+            # Otherwise, set the parameter
+            params[param_name] = [param_value]
+    elif param_name in params:
+        # Remove the parameter
+        del params[param_name]
+
+    # Construct the updated URL
+    updated_url = url_parts._replace(query=urlencode(params, doseq=True)).geturl()
+    # Replace '%2C' with a comma
+    updated_url = updated_url.replace("%2C", ",")
+    updated_url = updated_url.split("default/")[1]
+    return updated_url
+
+
+def add_filters_to_url():
+    filters = request.vars["filter"]
+    new_url = manipulate_url(request.env.http_referer, "filters", filters)
+    redirect(URL(new_url))
+
+
+def add_searches_to_url():
+    search_terms = request.vars["search"]
+    new_url = manipulate_url(request.env.http_referer, "search", search_terms)
+    redirect(URL(new_url))
+
+
+def add_to_search_bar(item, search_input):
+    if search_input:
+        search_input += ','
+    search_input += item
+    return search_input
+
+
+def clear_url():
+    redirect(URL("default", "logs"))
+
+
+def collapse_date_column():
+    # Get the current URL from the request environment
+    url = request.env.http_referer
+
+    # Parse the URL into components
+    url_parts = urlparse(url)
+    # Parse the URL parameters
+    params = parse_qs(url_parts.query)
+
+    if "timestamp" in params:
+        # If the Datum column was not visible, remove 'timestamp' from the URL
+        updated_url = manipulate_url(url, "timestamp", "")
+    else:
+        # If the Datum column was visible, add 'timestamp=false' to the URL
+        updated_url = manipulate_url(url, "timestamp", "false")
+
+    redirect(URL(updated_url))
+
+
+def submit_item():
+    item_type = request.vars.item_type
+    item = request.vars.item
+    name = request.vars.name
+    if item_type == "term":
+        db.search_term.insert(term=[item, name])
+    elif item_type == "url":
+        db.url.insert(url=[item, name])
+    db.commit()
+    redirect(URL("logs"))
+
+
+def delete_item():
+    item_type = request.vars.item_type
+    item = request.vars.item
+    name = request.vars.name
+    if item_type == "term":
+        db(db.search_term.term.contains(item)).delete()
+    elif item_type == "url":
+        db(db.url.url.contains(item)).delete()
+    db.commit()
+    redirect(URL("logs"))
 
 
 def get_docker_names():
