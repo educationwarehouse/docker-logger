@@ -115,11 +115,12 @@
                 <div id="docker-names-container" class="outlined">
                     <h2 class="center outlined_inside_container">Docker containers</h2>
                     <p>Tip: Click on a Docker container to get it in the search bar</p>
-                    <div id="docker-names">
+                    <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
                         {{for docker_name in docker_names:}}
-                        <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
+                            <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
+                            <input type="checkbox" name="docker_name" value="{{=docker_name}}" onchange="this.form.submit()">
                         {{pass}}
-                    </div>
+                    </form>
                 </div>
 
                 <!--modal for search terms-->
