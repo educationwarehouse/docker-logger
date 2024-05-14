@@ -48,6 +48,9 @@ def logs():
     # get all the filters from the database
     filters = db(db.log_filter).select(db.log_filter.log_filter)
 
+    # Get the filters from the request variables
+    url_filters = request.vars.filters.split(",") if request.vars.filters else []
+
     # get the Docker names from the log files
     log_files = glob.glob("../logs/*.log", recursive=True)
     docker_names = []
@@ -55,18 +58,19 @@ def logs():
         docker_name = os.path.basename(log_file).split(".")[0]
         docker_names.append(docker_name)
 
+    # get the docker names from the request variables
+    url_docker_names = request.vars.exclude.split(",") if request.vars.exclude else []
+
     # get all the search terms from the database
     search_terms = db(db.search_term).select(db.search_term.term)
 
     # get the urls from the database
     urls = db(db.url).select(db.url.url)
 
-    # Get the filters from the request variables
-    url_filters = request.vars.filters.split(",") if request.vars.filters else []
-
     return dict(
         filters=filters,
         url_filters=url_filters,
+        url_docker_names=url_docker_names,
         docker_names=docker_names,
         search_terms=search_terms,
         urls=urls,

@@ -118,7 +118,7 @@
                     <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
                         {{for docker_name in docker_names:}}
                             <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
-                            <input type="checkbox" name="docker_name" value="{{=docker_name}}" onchange="this.form.submit()">
+                        <input type="checkbox" name="docker_name" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onchange="this.form.submit()">
                         {{pass}}
                     </form>
                 </div>
