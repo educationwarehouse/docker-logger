@@ -48,7 +48,32 @@ def logs():
     # Fetch log filters from the database
     log_filters = db(db.log_filter).select()
 
-    return dict(log_filters=log_filters)
+    return dict(
+        log_filters=log_filters,
+        docker_names=get_docker_names(),
+        search_terms=get_search_terms(),
+        urls=get_urls(),
+        request_current_url=request.env.http_referer,
+    )
+
+
+def get_docker_names():
+    log_files = glob.glob("../logs/*.log", recursive=True)
+    docker_names = []
+    for log_file in log_files:
+        docker_name = os.path.basename(log_file).split(".")[0]
+        docker_names.append(docker_name)
+    return docker_names
+
+
+def get_search_terms():
+    search_terms = db(db.search_term).select(db.search_term.term)
+    return search_terms
+
+
+def get_urls():
+    urls = db(db.url).select(db.url.url)
+    return urls
 
 
 def realtime_logs():
@@ -102,6 +127,7 @@ def realtime_logs():
     logs = logs[:100]
     return dict(logs=logs, collapse_timestamp=collapse_timestamp)
 
+
 def manipulate_url(url, param_name, param_value):
     # Parse the URL into components
     url_parts = urlparse(url)
@@ -138,6 +164,12 @@ def add_filters_to_url():
 def add_searches_to_url():
     search_terms = request.vars["search"]
     new_url = manipulate_url(request.env.http_referer, "search", search_terms)
+    redirect(URL(new_url))
+
+
+def add_docker_names_to_url():
+    docker_names = request.vars["docker_name"]
+    new_url = manipulate_url(request.env.http_referer, "exclude", docker_names)
     redirect(URL(new_url))
 
 
@@ -195,24 +227,6 @@ def delete_item():
         db(db.url.url.contains(item)).delete()
     db.commit()
     redirect(URL("logs"))
-
-
-def get_docker_names():
-    docker_names = [
-        os.path.basename(log_file).split(".")[0]
-        for log_file in glob.glob("../logs/*.log", recursive=True)
-    ]
-    return response.json(docker_names)
-
-
-def get_search_terms():
-    search_terms = db(db.search_term).select()
-    return response.json([term.term for term in search_terms])
-
-
-def get_urls():
-    urls = db(db.url).select()
-    return response.json([url.url for url in urls])
 
 
 def delete_item():

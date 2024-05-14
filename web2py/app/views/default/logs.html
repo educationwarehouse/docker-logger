@@ -116,7 +116,9 @@
                     <h2 class="center outlined_inside_container">Docker containers</h2>
                     <p>Tip: Click on a Docker container to get it in the search bar</p>
                     <div id="docker-names">
-                        <!-- Docker names will be added here -->
+                        {{for docker_name in docker_names:}}
+                        <div class="docker-name">{{=docker_name}}</div>
+                        {{pass}}
                     </div>
                 </div>
 
@@ -130,17 +132,20 @@
                         <br>
                         <br>
                         <input type="submit" value="Submit">
-                        <button onclick="closeModal('term')">Close</button>
+                        <button type="button" onclick="closeModal('term')">Close</button>
                     </form>
                 </div>
                 <!--container for search terms-->
                 <button onclick="openModal('term')" class="new_button">New</button>
                 <div id="search-terms-container" class="outlined">
                     <h2 class="center outlined_inside_container">Search Terms</h2>
-
                     <p>Tip: Click on a search term to get it in the search bar</p>
                     <div id="search-terms">
-                        <!-- Search terms will be added here -->
+                        {{for search_term in search_terms:}}
+                            {{for key, value in search_term.items():}}
+                                <div class="search-term">{{=value[1] if len(value) > 1 else value[0]}}</div>
+                            {{pass}}
+                        {{pass}}
                     </div>
                 </div>
 
@@ -148,13 +153,13 @@
                 <div id="modal-url" class="modal_content">
                     <form action="{{=URL('default', 'submit_item')}}" method="post">
                         <h2>Add a new URL</h2>
-                        <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar">
+                        <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar" value="{{=request_current_url}}">
                         <br>
                         <input type="text" name="nickname" placeholder="Enter a name (default is URL)" class="search_bar">
                         <br>
                         <br>
                         <input type="submit" value="Submit">
-                        <button onclick="closeModal('url')">Close</button>
+                        <button type="button" onclick="closeModal('url')">Close</button>
                     </form>
                 </div>
                 <!--container for URLs-->
@@ -163,7 +168,13 @@
                     <h2 class="center outlined_inside_container">URLs</h2>
                     <p>Tip: Click on a URL to open it</p>
                     <div id="urls">
-                        <!-- URLs will be added here -->
+                        {{for url in urls:}}
+                            {{for key, value in url.items():}}
+                                <div>
+                                    <a href="{{=value[0]}}" class="url">{{=value[1] if len(value) > 1 else value[0]}}</a>
+                                </div>
+                            {{pass}}
+                        {{pass}}
                     </div>
                 </div>
             </div>
