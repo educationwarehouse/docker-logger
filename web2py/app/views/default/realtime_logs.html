@@ -25,16 +25,16 @@
         <tr>
             <th>Docker container</th>
             {{if not collapse_timestamp:}}
-            {{pass}}
                 <th class="date-column">Date/Time</th>
+            {{pass}}
             <th>Logline</th>
         </tr>
         {{for log in logs:}}
         <tr>
             <td style="color: {{=docker_colors[log[0]]}};">{{=log[0]}}</td>
             {{if not collapse_timestamp:}}
-            {{pass}}
                 <td class="date-column" style="color: {{=docker_colors[log[0]]}};">{{=log[1]}}</td>
+            {{pass}}
             <td>{{=log[2]}}</td>
         </tr>
         {{pass}}
