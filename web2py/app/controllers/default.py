@@ -254,7 +254,10 @@ def delete_item():
 
 def string_to_color(input_string):
     hash_code = hash(input_string)
-    r = (hash_code & 0xFF0000) >> 16
-    g = (hash_code & 0x00FF00) >> 8
-    b = hash_code & 0x0000FF
+    r = ((hash_code & 0xFF0000) >> 16) + 100
+    g = ((hash_code & 0x00FF00) >> 8) + 100
+    b = (hash_code & 0x0000FF) + 100
+    r = min(255, r)
+    g = min(255, g)
+    b = min(255, b)
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
