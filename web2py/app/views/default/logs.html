@@ -104,17 +104,26 @@
         overflow: auto;
     }
 
-    .flex-row form {
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .checkbox-container:nth-child(odd) {
+        background-color: #545454;
+    }
+
+    .term_or_url_row form {
         display: flex;
         align-items: center;
         width: 100%;
     }
 
-    .flex-row form input[type="submit"], .flex-row form input[type="checkbox"] {
+    .term_or_url_row form input[type="submit"] {
         margin-right: 5px;
     }
 
-    .flex-row:nth-child(odd) {
+    .term_or_url_row:nth-child(odd) {
         background-color: #545454;
     }
 
@@ -134,14 +143,14 @@
                     <h2 class="center outlined_inside_container">Docker containers</h2>
                     <p>Tip: Click on a Docker container to get it in the search bar</p>
                     <div id="docker-names">
-                        {{for docker_name in docker_names:}}
-                            <div class="flex-row">
-                                <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
+                        <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
+                            {{for docker_name in docker_names:}}
+                                <div class="checkbox-container">
                                     <input type="checkbox" name="docker_name" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onclick="event.stopPropagation();" onchange="this.form.submit()">
                                     <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
-                                </form>
-                            </div>
-                        {{pass}}
+                                </div>
+                            {{pass}}
+                        </form>
                     </div>
                 </div>
 
@@ -166,7 +175,7 @@
                     <div id="search-terms">
                         {{for search_term in search_terms:}}
                             {{for key, value in search_term.items():}}
-                                <div class="flex-row">
+                                <div class="term_or_url_row">
                                     <form action="{{=URL('default', 'delete_item')}}" method="post">
                                         <input type="hidden" name="default-term" value="{{=value[0]}}">
                                         <input type="hidden" name="nickname" value="{{=value[1] if len(value) > 1 else value[0]}}">
@@ -200,7 +209,7 @@
                     <div id="urls">
                         {{for url in urls:}}
                             {{for key, value in url.items():}}
-                                <div class="flex-row">
+                                <div class="term_or_url_row">
                                     <form action="{{=URL('default', 'delete_item')}}" method="post">
                                         <input type="hidden" name="default-url" value="{{=value[0]}}">
                                         <input type="hidden" name="nickname" value="{{=value[1] if len(value) > 1 else value[0]}}">
