@@ -176,7 +176,7 @@ def manipulate_url(url, param_name, param_values):
 
 
 def add_filters_to_url():
-    print(request.vars["filter"])
+    print(request.vars)
     filters = request.vars["filter"]
     new_url = manipulate_url(request.env.http_referer, "filters", filters)
     redirect(URL(new_url))
@@ -189,6 +189,7 @@ def add_searches_to_url():
 
 
 def add_docker_names_to_url():
+    print(request.vars)
     docker_names = request.vars["docker_name"]
     new_url = manipulate_url(request.env.http_referer, "exclude", docker_names)
     redirect(URL(new_url))
@@ -221,13 +222,7 @@ def submit_item():
     term = request.vars["default-term"]
     url = request.vars["default-url"]
     name = request.vars["nickname"]
-    if term:
-        print("Inserting search term:", term, "with the name:", name if name else term)
-        db.search_term.insert(term=[term, name])
-    if url:
-        print("Inserting url:", url, "with the name:", name if name else url)
-        db.url.insert(url=[url, name])
-    db.commit()
+    model_submit_item(term, url, name)
     redirect(URL("logs"))
 
 
@@ -235,17 +230,5 @@ def delete_item():
     term = request.vars["default-term"]
     url = request.vars["default-url"]
     name = request.vars["nickname"]
-    if term:
-        print("Deleting search term:", term, "with the name:", name)
-        if term == name:
-            db(db.search_term.term.contains(term)).delete()
-        else:
-            db(db.search_term.term == [term, name]).delete()
-    if url:
-        print("Deleting url:", url, "with the name:", name)
-        if url == name:
-            db(db.url.url.contains(url)).delete()
-        else:
-            db(db.url.url == [url, name]).delete()
-    db.commit()
+    model_delete_item(term, url, name)
     redirect(URL("logs"))
