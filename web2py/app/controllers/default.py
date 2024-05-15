@@ -129,24 +129,43 @@ def realtime_logs():
     return dict(logs=logs, collapse_timestamp=collapse_timestamp)
 
 
-def manipulate_url(url, param_name, param_value):
+def manipulate_url(url, param_name, param_values):
     # Parse the URL into components
     url_parts = urlparse(url)
     # Parse the URL parameters
     params = parse_qs(url_parts.query)
 
-    if param_value:
-        # If the parameter already exists, append the new value
+    # If param_values is a string, convert it to a list
+    if isinstance(param_values, str):
+        param_values = [param_values]
+
+    if param_values is None:
+        # If param_values is None, remove the parameter
         if param_name in params:
-            # Avoid duplicate search terms
-            if param_value not in params[param_name][0].split(","):
-                params[param_name][0] += "," + param_value
+            del params[param_name]
+    else:
+        # If the parameter already exists, check the values
+        if param_name in params:
+            # Split the existing values
+            existing_values = params[param_name][0].split(",")
+            # Create a list to store the updated values
+            updated_values = []
+            # Iterate over the existing values
+            for value in existing_values:
+                # If the value is in the provided list, add it to the updated values
+                if value in param_values:
+                    updated_values.append(value)
+            # Iterate over the provided list
+            for value in param_values:
+                # If the value is not in the existing values, add it to the updated values
+                if value not in existing_values:
+                    updated_values.append(value)
+            # Set the parameter to the updated values
+            params[param_name] = [",".join(updated_values)]
         else:
-            # Otherwise, set the parameter
-            params[param_name] = [param_value]
-    elif param_name in params:
-        # Remove the parameter
-        del params[param_name]
+            # If the parameter does not exist and param_values is not empty, set the parameter
+            if param_values:
+                params[param_name] = [",".join(param_values)]
 
     # Construct the updated URL
     updated_url = url_parts._replace(query=urlencode(params, doseq=True)).geturl()
@@ -157,6 +176,7 @@ def manipulate_url(url, param_name, param_value):
 
 
 def add_filters_to_url():
+    print(request.vars["filter"])
     filters = request.vars["filter"]
     new_url = manipulate_url(request.env.http_referer, "filters", filters)
     redirect(URL(new_url))
@@ -189,7 +209,7 @@ def collapse_date_column():
 
     if "timestamp" in params:
         # If the Datum column was not visible, remove 'timestamp' from the URL
-        updated_url = manipulate_url(url, "timestamp", "")
+        updated_url = manipulate_url(url, "timestamp", None)
     else:
         # If the Datum column was visible, add 'timestamp=false' to the URL
         updated_url = manipulate_url(url, "timestamp", "false")
@@ -211,27 +231,21 @@ def submit_item():
     redirect(URL("logs"))
 
 
-# def delete_item():
-#     item_type = request.vars.item_type
-#     item = request.vars.item
-#     name = request.vars.name
-#     if item_type == "term":
-#         db(db.search_term.term.contains(item)).delete()
-#     elif item_type == "url":
-#         db(db.url.url.contains(item)).delete()
-#     db.commit()
-#     redirect(URL("logs"))
-
-
-# def delete_item():
-#     term = request.vars.term
-#     url = request.vars.url
-#     name = request.vars.name
-#     if term:
-#         print("Deleting search term:", term, "with the name:", name if name else term)
-#         db(db.search_term.term.contains(term)).delete()
-#     if url:
-#         print("Deleting url:", url, "with the name:", name if name else url)
-#         db(db.url.url.contains(url)).delete()
-#     db.commit()
-#     redirect(URL("logs"))
+def delete_item():
+    term = request.vars["default-term"]
+    url = request.vars["default-url"]
+    name = request.vars["nickname"]
+    if term:
+        print("Deleting search term:", term, "with the name:", name)
+        if term == name:
+            db(db.search_term.term.contains(term)).delete()
+        else:
+            db(db.search_term.term == [term, name]).delete()
+    if url:
+        print("Deleting url:", url, "with the name:", name)
+        if url == name:
+            db(db.url.url.contains(url)).delete()
+        else:
+            db(db.url.url == [url, name]).delete()
+    db.commit()
+    redirect(URL("logs"))

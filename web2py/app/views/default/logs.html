@@ -15,6 +15,7 @@
         flex-direction: column;
         margin-right: 20px;
         overflow: auto;
+        max-width: 40vh;
     }
 
     #left-side > div {
@@ -99,10 +100,27 @@
     }
 
     #scroll_logs {
-        height: 65vh;
+        height: 70vh;
         overflow: auto;
     }
 
+    .flex-row form {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .flex-row form input[type="submit"], .flex-row form input[type="checkbox"] {
+        margin-right: 5px;
+    }
+
+    .flex-row:nth-child(odd) {
+        background-color: #545454;
+    }
+
+    tr:nth-child(odd) {
+       background-color: #333333;
+    }
 </style>
 <html>
     <body>
@@ -115,12 +133,16 @@
                 <div id="docker-names-container" class="outlined">
                     <h2 class="center outlined_inside_container">Docker containers</h2>
                     <p>Tip: Click on a Docker container to get it in the search bar</p>
-                    <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
+                    <div id="docker-names">
                         {{for docker_name in docker_names:}}
-                            <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
-                        <input type="checkbox" name="docker_name" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onchange="this.form.submit()">
+                            <div class="flex-row">
+                                <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
+                                    <input type="checkbox" name="docker_name" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onclick="event.stopPropagation();" onchange="this.form.submit()">
+                                    <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
+                                </form>
+                            </div>
                         {{pass}}
-                    </form>
+                    </div>
                 </div>
 
                 <!--modal for search terms-->
@@ -141,13 +163,20 @@
                 <div id="search-terms-container" class="outlined">
                     <h2 class="center outlined_inside_container">Search Terms</h2>
                     <p>Tip: Click on a search term to get it in the search bar</p>
-                        <div id="search-terms">
-                            {{for search_term in search_terms:}}
-                                {{for key, value in search_term.items():}}
-                                    <div class="search-term" onclick="addToSearchBar('{{=value[0]}}')">{{=value[1] if len(value) > 1 else value[0]}}</div>
-                                {{pass}}
+                    <div id="search-terms">
+                        {{for search_term in search_terms:}}
+                            {{for key, value in search_term.items():}}
+                                <div class="flex-row">
+                                    <form action="{{=URL('default', 'delete_item')}}" method="post">
+                                        <input type="hidden" name="default-term" value="{{=value[0]}}">
+                                        <input type="hidden" name="nickname" value="{{=value[1] if len(value) > 1 else value[0]}}">
+                                        <input type="submit" value="Delete">
+                                        <div class="search-term" onclick="addToSearchBar('{{=value[0]}}')">{{=value[1] if len(value) > 1 else value[0]}}</div>
+                                    </form>
+                                </div>
                             {{pass}}
-                        </div>
+                        {{pass}}
+                    </div>
                 </div>
 
                 <!--modal for URLs-->
@@ -171,8 +200,13 @@
                     <div id="urls">
                         {{for url in urls:}}
                             {{for key, value in url.items():}}
-                                <div>
-                                    <a href="{{=value[0]}}" class="url">{{=value[1] if len(value) > 1 else value[0]}}</a>
+                                <div class="flex-row">
+                                    <form action="{{=URL('default', 'delete_item')}}" method="post">
+                                        <input type="hidden" name="default-url" value="{{=value[0]}}">
+                                        <input type="hidden" name="nickname" value="{{=value[1] if len(value) > 1 else value[0]}}">
+                                        <input type="submit" value="Delete">
+                                        <a href="{{=value[0]}}" class="url">{{=value[1] if len(value) > 1 else value[0]}}</a>
+                                    </form>
                                 </div>
                             {{pass}}
                         {{pass}}
@@ -182,7 +216,7 @@
 
             <div id="right-side">
                 <div id="search-bar">
-                    <form action="{{=URL('default', 'add_searches_to_url')}}" method="post">
+                    <form action="{{=URL('default', 'add_searches_to_url')}}" method="post" style="flex-grow: 1;">
                         <input type="text" id="search-input" name="search" placeholder="Search" class="search_bar">
                         <input type="submit" value="Search">
                     </form>
@@ -191,25 +225,27 @@
                     </form>
                 </div>
 
+
                  <div id="filter-bar">
                     <h2 style="margin-bottom: -5px">Filters</h2>
-                    {{for filter in filters:}}
                         <form action="{{=URL('default', 'add_filters_to_url')}}" method="post">
-                            <input type="checkbox" name="filter" value="{{=filter['log_filter']}}" {{if filter['log_filter'] in url_filters:}}checked{{pass}} onchange="this.form.submit()">
-                            <label>{{=filter['log_filter']}}</label>
+                            {{for filter in filters:}}
+                                <input type="checkbox" name="filter" value="{{=filter['log_filter']}}" {{if filter['log_filter'] in url_filters:}}checked{{pass}} onchange="this.form.submit()">
+                                <label>{{=filter['log_filter']}}</label>
+                            {{pass}}
                         </form>
-                    {{pass}}
                 </div>
 
                 <form action="{{=URL('default', 'collapse_date_column')}}" method="post">
-                    <input type="submit" value="Collapse Date/Time">
+                    <input type="submit" value="Collapse Date/Time" style="width: 100%">
+                    <div id="scroll_logs">
+                        <div id="logs" class="outlined" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs">
+                            <!-- Realtime logs content -->
+                        </div>
+                    </div>
                 </form>
 
-                <div id="scroll_logs">
-                    <div id="logs" class="outlined" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="/init/default/realtime_logs" data-base-url="/init/default/realtime_logs">
-                        <!-- Realtime logs content -->
-                    </div>
-                </div>
+
             </div>
         </div>
     </body>
@@ -237,68 +273,6 @@
         searchInput.value += term;
     }
 
-    // function fetchData(endpoint, elementId, className, itemType) {
-    //         fetch(endpoint)
-    //             .then(response => response.json())
-    //             .then(items => {
-    //                 var divElement = document.getElementById(elementId);
-    //                 divElement.innerHTML = '';
-    //                 if (itemType === 'docker') {
-    //                     items.sort();
-    //                 }
-    //                 for (let i = 0; i < items.length; i++) {
-    //                     var div = document.createElement('div');
-    //                     div.className = className;
-    //                     let currentItem = items[i];
-    //                     if (itemType === 'term') {
-    //                         div.textContent = items[i][1] || items[i][0];
-    //                         div.onclick = function() {
-    //                             addToSearchBar(currentItem[0]);
-    //                         };
-    //                         divElement.appendChild(div);
-    //                     } else if (itemType === 'url') {
-    //                         var a = document.createElement('a');
-    //                         a.href = items[i][0];
-    //                         a.textContent = items[i][1] || items[i][0];
-    //                         div.appendChild(a);
-    //                     } else if (itemType === 'docker') {
-    //                         div.textContent = items[i];
-    //                         div.onclick = function() {
-    //                             addToSearchBar(currentItem);
-    //                         };
-    //                         var checkbox = document.createElement('input');
-    //                         checkbox.type = 'checkbox';
-    //                         checkbox.checked = true;
-    //                         checkbox.value = items[i];
-    //                         checkbox.onclick = function () {
-    //                             event.stopPropagation();
-    //                             updateExcludedDockerNames();
-    //                         };
-    //                         div.appendChild(checkbox);
-    //                     }
-    //                     if (itemType !== 'docker') {
-    //                         var deleteButton = document.createElement('button');
-    //                         deleteButton.textContent = 'Delete';
-    //                         deleteButton.onclick = (function(item, name) {
-    //                             return function() {
-    //                                 event.stopPropagation();
-    //                                 deleteItem(itemType, {url: item, name: name}); };
-    //                         })(items[i][0], items[i][1]);
-    //                         div.appendChild(deleteButton);
-    //                     }
-    //                     divElement.appendChild(div);
-    //                 }
-    //             });
-    //     }
-
-    function deleteItem(item, name) {
-        var params = new URLSearchParams();
-        params.append(item, name.url);
-        params.append('name', name.name);
-        window.location.href = '/init/default/delete_item?' + params.toString();
-    }
-
-
     function collapseAll() {
         var divs = ['search-bar', 'filter-bar', 'docker-names-container', 'search-terms-container', 'urls-container'];
         var buttons = 'new_button';
@@ -308,7 +282,7 @@
             if (div) {
                 if (div.style.display === "none") {
                     div.style.display = "block";
-                    scroll_logs.style.height = '65vh';
+                    scroll_logs.style.height = '70vh';
                 } else {
                     div.style.display = "none";
                     scroll_logs.style.height = '90vh';
