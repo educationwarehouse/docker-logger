@@ -147,7 +147,7 @@
                             {{for docker_name in docker_names:}}
                                 <div class="checkbox-container">
                                     <input type="checkbox" name="docker_name" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onclick="event.stopPropagation();" onchange="this.form.submit()">
-                                    <div class="docker-name" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
+                                    <div class="docker-name" style="color: {{=docker_colors[docker_name]}};" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
                                 </div>
                             {{pass}}
                         </form>

@@ -67,6 +67,11 @@ def logs():
     # get the urls from the database
     urls = db(db.url).select(db.url.url)
 
+    # generate a color for each docker name
+    docker_colors = {
+        docker_name: string_to_color(docker_name) for docker_name in docker_names
+    }
+
     return dict(
         filters=filters,
         url_filters=url_filters,
@@ -74,6 +79,7 @@ def logs():
         docker_names=docker_names,
         search_terms=search_terms,
         urls=urls,
+        docker_colors=docker_colors,
     )
 
 
@@ -126,7 +132,19 @@ def realtime_logs():
     # Sort the logs by datetime
     logs = sorted(logs, key=lambda log: log[1], reverse=True)
     logs = logs[:100]
-    return dict(logs=logs, collapse_timestamp=collapse_timestamp)
+
+    log_files = glob.glob("../logs/*.log", recursive=True)
+    docker_names = []
+    for log_file in log_files:
+        docker_name = os.path.basename(log_file).split(".")[0]
+        docker_names.append(docker_name)
+    docker_colors = {
+        docker_name: string_to_color(docker_name) for docker_name in docker_names
+    }
+
+    return dict(
+        logs=logs, collapse_timestamp=collapse_timestamp, docker_colors=docker_colors
+    )
 
 
 def manipulate_url(url, param_name, param_values):
@@ -232,3 +250,11 @@ def delete_item():
     name = request.vars["nickname"]
     model_delete_item(term, url, name)
     redirect(URL("logs"))
+
+
+def string_to_color(input_string):
+    hash_code = hash(input_string)
+    r = (hash_code & 0xFF0000) >> 16
+    g = (hash_code & 0x00FF00) >> 8
+    b = hash_code & 0x0000FF
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)
