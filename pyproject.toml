@@ -25,7 +25,8 @@ dev = [
     "python-semantic-release<8",
     "black",
     "web2py-gluon",
-    'edwh[omgeving,plugins]'
+    'edwh[omgeving,plugins]',
+    'pytest'
 ]
 
 [tool.hatch.version]
@@ -41,3 +42,9 @@ change_log = "CHANGELOG.md"
 upload_to_repository = false
 upload_to_release = false
 build_command = "hatch build"
+
+
+[tool.pytest.ini_options]
+pythonpath = [
+"web2py",
+]
