@@ -62,10 +62,13 @@ def logs():
     url_docker_names = request.vars.exclude.split(",") if request.vars.exclude else []
 
     # get all the search terms from the database
-    search_terms = db(db.search_term).select(db.search_term.term)
+    search_terms = db(db.search_term).select(db.search_term.term, db.search_term.name)
+
+    # get the search terms from the request variables
+    url_search_terms = request.vars.search.split(",") if request.vars.search else []
 
     # get the urls from the database
-    urls = db(db.url).select(db.url.url)
+    urls = db(db.url).select(db.url.url, db.url.name)
 
     # generate a color for each docker name
     docker_colors = {
@@ -78,6 +81,7 @@ def logs():
         url_docker_names=url_docker_names,
         docker_names=docker_names,
         search_terms=search_terms,
+        url_search_terms=url_search_terms,
         urls=urls,
         docker_colors=docker_colors,
     )
@@ -107,7 +111,11 @@ def realtime_logs():
             if lines:
                 for line in lines:
                     # Ignore lines containing `logs', because of the realtime logging with htmx
-                    if "logs" in line and "debug" in line:
+                    if (
+                        "logs" in line
+                        and "debug" in line
+                        and 'X-Forwarded-Host\\":[\\"logs.' in line
+                    ):
                         continue
                     # Only include the log if it matches one of the filters or search terms
                     if (
@@ -116,7 +124,7 @@ def realtime_logs():
                     ) and (
                         not search_terms
                         or any(
-                            re.search(search_term.lower(), line.lower())
+                            re.search(search_term, line.lower(), flags=re.IGNORECASE)
                             for search_term in search_terms
                         )
                     ):

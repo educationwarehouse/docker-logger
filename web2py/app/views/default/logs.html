@@ -130,6 +130,24 @@
     tr:nth-child(odd) {
        background-color: #333333;
     }
+    /*tr:nth-child(even) {background-color: #f2f2f2;}*/
+    th {
+        position: sticky;
+        top: 0;
+        background-color: #474747;
+        z-index: 10;
+        border-bottom: white 1px solid;
+        height: 50px;
+    }
+    table {
+        border-collapse: separate;
+        /*border-spacing: 0 10px;*/
+        background: #474747;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        width: 100%;
+        height: 100%;
+    }
 </style>
 <html>
     <body>
@@ -158,9 +176,9 @@
                 <div id="modal-term" class="modal_content">
                     <form action="{{=URL('default', 'submit_item')}}" method="post">
                         <h2>Add a new search term</h2>
-                        <input type="text" name="default-term" placeholder="Enter new search term" class="search_bar">
-                        <br>
                         <input type="text" name="nickname" placeholder="Enter a name (default is search term)" class="search_bar">
+                        <br>
+                        <input type="text" name="default-term" placeholder="Enter new search term" class="search_bar" id="default-search-input">
                         <br>
                         <br>
                         <input type="submit" value="Submit">
@@ -174,16 +192,14 @@
                     <p>Tip: Click on a search term to get it in the search bar</p>
                     <div id="search-terms">
                         {{for search_term in search_terms:}}
-                            {{for key, value in search_term.items():}}
-                                <div class="term_or_url_row">
-                                    <form action="{{=URL('default', 'delete_item')}}" method="post">
-                                        <input type="hidden" name="default-term" value="{{=value[0]}}">
-                                        <input type="hidden" name="nickname" value="{{=value[1] if len(value) > 1 else value[0]}}">
-                                        <input type="submit" value="Delete">
-                                        <div class="search-term" onclick="addToSearchBar('{{=value[0]}}')">{{=value[1] if len(value) > 1 else value[0]}}</div>
-                                    </form>
-                                </div>
-                            {{pass}}
+                            <div class="term_or_url_row">
+                                <form action="{{=URL('default', 'delete_item')}}" method="post">
+                                    <input type="hidden" name="default-term" value="{{=search_term.term}}">
+                                    <input type="hidden" name="nickname" value="{{=search_term.name}}">
+                                    <input type="submit" value="Delete">
+                                    <div class="search-term" onclick="addToSearchBar('{{=search_term.term}}')">{{=search_term.name}}</div>
+                                </form>
+                            </div>
                         {{pass}}
                     </div>
                 </div>
@@ -192,9 +208,9 @@
                 <div id="modal-url" class="modal_content">
                     <form action="{{=URL('default', 'submit_item')}}" method="post">
                         <h2>Add a new URL</h2>
-                        <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar" id="url-input">
-                        <br>
                         <input type="text" name="nickname" placeholder="Enter a name (default is URL)" class="search_bar">
+                        <br>
+                        <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar" id="default-url-input">
                         <br>
                         <br>
                         <input type="submit" value="Submit">
@@ -208,16 +224,14 @@
                     <p>Tip: Click on a URL to open it</p>
                     <div id="urls">
                         {{for url in urls:}}
-                            {{for key, value in url.items():}}
-                                <div class="term_or_url_row">
-                                    <form action="{{=URL('default', 'delete_item')}}" method="post">
-                                        <input type="hidden" name="default-url" value="{{=value[0]}}">
-                                        <input type="hidden" name="nickname" value="{{=value[1] if len(value) > 1 else value[0]}}">
-                                        <input type="submit" value="Delete">
-                                        <a href="{{=value[0]}}" class="url">{{=value[1] if len(value) > 1 else value[0]}}</a>
-                                    </form>
-                                </div>
-                            {{pass}}
+                            <div class="term_or_url_row">
+                                <form action="{{=URL('default', 'delete_item')}}" method="post">
+                                    <input type="hidden" name="default-url" value="{{=url.url}}">
+                                    <input type="hidden" name="nickname" value="{{=url.name}}">
+                                    <input type="submit" value="Delete">
+                                    <a href="{{=url.url}}" class="url">{{=url.name}}</a>
+                                </form>
+                            </div>
                         {{pass}}
                     </div>
                 </div>
@@ -226,7 +240,7 @@
             <div id="right-side">
                 <div id="search-bar">
                     <form action="{{=URL('default', 'add_searches_to_url')}}" method="post" style="flex-grow: 1;">
-                        <input type="text" id="search-input" name="search" placeholder="Search" class="search_bar">
+                        <input type="text" id="search-input" name="search" placeholder="Search" class="search_bar" value="{{=','.join(url_search_terms) if url_search_terms else ''}}">
                         <input type="submit" value="Search">
                     </form>
                     <form action="{{=URL('default', 'clear_url')}}" method="post">
@@ -263,7 +277,10 @@
 
 <script>
     window.onload = function() {
-    document.getElementById('url-input').value = window.location.href;
+    // automatically add the current URL to the URL input field
+    document.getElementById('default-url-input').value = window.location.href;
+    // automatically add the current search terms to the search input field, from the search bar
+    document.getElementById('default-search-input').value = document.getElementById('search-input').value;
 }
 
     function openModal(search_or_url) {
