@@ -16,6 +16,14 @@ if db(db.log_filter).isempty():
 
 
 def model_submit_item(term, url, name):
+    """
+    Inserts a new search term or URL into the respective database table.
+
+    Parameters:
+    term (str): The search term to be inserted into the 'search_term' table.
+    url (str): The URL to be inserted into the 'url' table.
+    name (str): The name to be associated with the term or URL.
+    """
     if term:
         print("Inserting search term:", term, "with the name:", name if name else term)
         db.search_term.insert(term=term, name=name if name else term)
@@ -26,6 +34,14 @@ def model_submit_item(term, url, name):
 
 
 def model_delete_item(term, url, name):
+    """
+    Deletes a search term or URL from the respective database table.
+
+    Parameters:
+    term (str): The search term to be deleted from the 'search_term' table.
+    url (str): The URL to be deleted from the 'url' table.
+    name (str): The name associated with the term or URL. This is used for printing purposes only.
+    """
     if term:
         print("Deleting search term:", term, "with the name:", name)
         db(db.search_term.term == term).delete()

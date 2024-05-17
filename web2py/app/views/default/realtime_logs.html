@@ -1,5 +1,12 @@
 <div id="logs" hx-get="/init/default/realtime_logs" hx-trigger="load" hx-poll="1s">
+    <!--
+    It uses htmx to fetch the logs from the server every second (hx-poll="1s").
+    -->
     <table>
+        <!--
+        The table header row contains three columns: Docker container, Date/Time, and Logline.
+        The Date/Time column is conditionally rendered based on the value of the 'collapse_timestamp' variable.
+        -->
         <tr>
             <th>Docker container</th>
             {{if not collapse_timestamp:}}
@@ -9,6 +16,10 @@
         </tr>
         {{for container,timestamp,line in logs:}}
         <tr>
+            <!--
+            The 'docker_colors' dictionary maps Docker container names to colors.
+            The 'color' variable is used to store the color associated with the current Docker container.
+            -->
             {{color=docker_colors[container]}}
             <td style="color:{{=color}};">{{=container}}</td>
             {{if not collapse_timestamp:}}

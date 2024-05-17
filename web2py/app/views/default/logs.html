@@ -130,7 +130,7 @@
     tr:nth-child(odd) {
        background-color: #333333;
     }
-    /*tr:nth-child(even) {background-color: #f2f2f2;}*/
+
     th {
         position: sticky;
         top: 0;
@@ -141,7 +141,6 @@
     }
     table {
         border-collapse: separate;
-        /*border-spacing: 0 10px;*/
         background: #474747;
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
@@ -154,17 +153,19 @@
         <div id="main-container">
             <div id="left-side">
 
-                <button id="collapseButton" onclick="collapseAll()">Collapse all</button>
+                <!-- Button to collapse all sections -->
+                <button onclick="collapseAll()">Collapse all</button>
 
                 <!--container for docker names-->
                 <div id="docker-names-container" class="outlined">
                     <h2 class="center outlined_inside_container">Docker containers</h2>
                     <p>Tip: Click on a Docker container to get it in the search bar</p>
-                    <div id="docker-names">
-                        <form action="{{=URL('default', 'add_docker_names_to_url')}}" method="post">
+                    <div>
+                        <form action="{{=URL('default', 'add_value_to_url')}}" method="post">
+                            <input type="hidden" name="param_name" value="exclude">
                             {{for docker_name in docker_names:}}
                                 <div class="checkbox-container">
-                                    <input type="checkbox" name="docker_name" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onclick="event.stopPropagation();" onchange="this.form.submit()">
+                                    <input type="checkbox" name="param_values" value="{{=docker_name}}" {{if docker_name in url_docker_names:}}checked{{pass}} onclick="event.stopPropagation();" onchange="this.form.submit()">
                                     <div class="docker-name" style="color: {{=docker_colors[docker_name]}};" onclick="addToSearchBar('{{=docker_name}}')">{{=docker_name}}</div>
                                 </div>
                             {{pass}}
@@ -173,29 +174,32 @@
                 </div>
 
                 <!--modal for search terms-->
-                <div id="modal-term" class="modal_content">
-                    <form action="{{=URL('default', 'submit_item')}}" method="post">
+                <div class="modal_content">
+                    <form action="{{=URL('default', 'submit_or_delete_item')}}" method="post">
                         <h2>Add a new search term</h2>
                         <input type="text" name="nickname" placeholder="Enter a name (default is search term)" class="search_bar">
                         <br>
                         <input type="text" name="default-term" placeholder="Enter new search term" class="search_bar" id="default-search-input">
                         <br>
                         <br>
+                        <input type="hidden" name="submit_or_delete" value="submit">
                         <input type="submit" value="Submit">
                         <button type="button" onclick="closeModal('term')">Close</button>
                     </form>
                 </div>
+
                 <!--container for search terms-->
                 <button onclick="openModal('term')" class="new_button">New</button>
                 <div id="search-terms-container" class="outlined">
                     <h2 class="center outlined_inside_container">Search Terms</h2>
                     <p>Tip: Click on a search term to get it in the search bar</p>
-                    <div id="search-terms">
+                    <div>
                         {{for search_term in search_terms:}}
                             <div class="term_or_url_row">
-                                <form action="{{=URL('default', 'delete_item')}}" method="post">
+                                <form action="{{=URL('default', 'submit_or_delete_item')}}" method="post">
                                     <input type="hidden" name="default-term" value="{{=search_term.term}}">
                                     <input type="hidden" name="nickname" value="{{=search_term.name}}">
+                                    <input type="hidden" name="submit_or_delete" value="delete">
                                     <input type="submit" value="Delete">
                                     <div class="search-term" onclick="addToSearchBar('{{=search_term.term}}')">{{=search_term.name}}</div>
                                 </form>
@@ -205,29 +209,32 @@
                 </div>
 
                 <!--modal for URLs-->
-                <div id="modal-url" class="modal_content">
-                    <form action="{{=URL('default', 'submit_item')}}" method="post">
+                <div class="modal_content">
+                    <form action="{{=URL('default', 'submit_or_delete_item')}}" method="post">
                         <h2>Add a new URL</h2>
                         <input type="text" name="nickname" placeholder="Enter a name (default is URL)" class="search_bar">
                         <br>
                         <input type="text" name="default-url" placeholder="Enter new URL" class="search_bar" id="default-url-input">
                         <br>
                         <br>
+                        <input type="hidden" name="submit_or_delete" value="submit">
                         <input type="submit" value="Submit">
                         <button type="button" onclick="closeModal('url')">Close</button>
                     </form>
                 </div>
+
                 <!--container for URLs-->
                 <button onclick="openModal('url')" class="new_button">New</button>
                 <div id="urls-container" class="outlined">
                     <h2 class="center outlined_inside_container">URLs</h2>
                     <p>Tip: Click on a URL to open it</p>
-                    <div id="urls">
+                    <div>
                         {{for url in urls:}}
                             <div class="term_or_url_row">
-                                <form action="{{=URL('default', 'delete_item')}}" method="post">
+                                <form action="{{=URL('default', 'submit_or_delete_item')}}" method="post">
                                     <input type="hidden" name="default-url" value="{{=url.url}}">
                                     <input type="hidden" name="nickname" value="{{=url.name}}">
+                                    <input type="hidden" name="submit_or_delete" value="delete">
                                     <input type="submit" value="Delete">
                                     <a href="{{=url.url}}" class="url">{{=url.name}}</a>
                                 </form>
@@ -238,9 +245,12 @@
             </div>
 
             <div id="right-side">
+
+                <!--search-bar wirh search input, search button and clear url button-->
                 <div id="search-bar">
-                    <form action="{{=URL('default', 'add_searches_to_url')}}" method="post" style="flex-grow: 1;">
-                        <input type="text" id="search-input" name="search" placeholder="Search" class="search_bar" value="{{=','.join(url_search_terms) if url_search_terms else ''}}">
+                    <form action="{{=URL('default', 'add_value_to_url')}}" method="post" style="flex-grow: 1;">
+                        <input type="hidden" name="param_name" value="search">
+                        <input type="text" id="search-input" name="param_values" placeholder="Search" class="search_bar" value="{{=','.join(url_search_terms) if url_search_terms else ''}}">
                         <input type="submit" value="Search">
                     </form>
                     <form action="{{=URL('default', 'clear_url')}}" method="post">
@@ -250,15 +260,18 @@
 
 
                  <div id="filter-bar">
+                    <!--container for all the filters-->
                     <h2 style="margin-bottom: -5px">Filters</h2>
-                        <form action="{{=URL('default', 'add_filters_to_url')}}" method="post">
+                        <form action="{{=URL('default', 'add_value_to_url')}}" method="post">
+                            <input type="hidden" name="param_name" value="filters">
                             {{for filter in filters:}}
-                                <input type="checkbox" name="filter" value="{{=filter['log_filter']}}" {{if filter['log_filter'] in url_filters:}}checked{{pass}} onchange="this.form.submit()">
+                                <input type="checkbox" name="param_values" value="{{=filter['log_filter']}}" {{if filter['log_filter'] in url_filters:}}checked{{pass}} onchange="this.form.submit()">
                                 <label>{{=filter['log_filter']}}</label>
                             {{pass}}
                         </form>
                 </div>
 
+                <!--button to collapse the date column-->
                 <form action="{{=URL('default', 'collapse_date_column')}}" method="post">
                     <input type="submit" value="Collapse Date/Time" style="width: 100%">
                     <div id="scroll_logs">
