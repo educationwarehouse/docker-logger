@@ -3,6 +3,7 @@
 ![Docker logger](docs/img/docker-logger.png)
 The Docker Logger Tool is a convenient way to log and monitor Docker containers. The tool is built with Python and JavaScript, and uses the pip package manager for Python dependencies.
 
+
 ## Features (usage)
 
 - Real-time logging of Docker containers
@@ -52,4 +53,5 @@ After the installation, you can access the Docker Logger Tool through your web b
 
 
 
-
+## A little bit about the docker logger itself
+The tool is a real time Docker logger for Docker containers and sets it in a `.log` of `.err` file. The Docker Logger Tool is an open-source project, and its source code and README.me can be found at [https://github.com/umputun/docker-logger](https://github.com/umputun/docker-logger).
