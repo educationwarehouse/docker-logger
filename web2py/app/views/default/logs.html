@@ -174,7 +174,7 @@
                 </div>
 
                 <!--modal for search terms-->
-                <div class="modal_content">
+                <div id="modal-term" class="modal_content">
                     <form action="{{=URL('default', 'submit_or_delete_item')}}" method="post">
                         <h2>Add a new search term</h2>
                         <input type="text" name="nickname" placeholder="Enter a name (default is search term)" class="search_bar">
@@ -209,7 +209,7 @@
                 </div>
 
                 <!--modal for URLs-->
-                <div class="modal_content">
+                <div id="modal-url" class="modal_content">
                     <form action="{{=URL('default', 'submit_or_delete_item')}}" method="post">
                         <h2>Add a new URL</h2>
                         <input type="text" name="nickname" placeholder="Enter a name (default is URL)" class="search_bar">
